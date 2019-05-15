@@ -1,4 +1,9 @@
 import Home from './Home.vue';
+import Users from './Users.vue';
+import Venues from './Venues.vue';
+import Login from './Login.vue';
+import Signup from './Signup.vue';
+
 import Vue from 'vue';
 import App from './App.vue';
 
@@ -8,10 +13,37 @@ Vue.use(VueRouter);
 import VueResource from 'vue-resource';
 Vue.use(VueResource);
 
+import VueCookies from 'vue-cookies';
+VueCookies.config('1d');
+Vue.use(VueCookies);
+
+Vue.http.emulateJSON = true;
+
 const routes = [
   {
     path: "/",
+    name: 'Home',
     component: Home
+  },
+  {
+    path: "/Venues",
+    name: 'Venues',
+    component: Venues
+  },
+  {
+    path: "/Users",
+    name: 'Users',
+    component: Users
+  },
+  {
+    path: "/Login",
+    name: 'Login',
+    component: Login
+  },
+  {
+    path: "/Signup",
+    name: 'Signup',
+    component: Signup
   }
 ];
 
