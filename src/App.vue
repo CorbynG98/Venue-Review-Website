@@ -15,9 +15,9 @@
           </li>
         </ul>
         <ul class="navbar-nav mr-auto right">
-          <div v-if="isAuth()">
+          <div v-if="isAuth">
             <li class="nav-item">
-              <span class="navbar-text">Username</span>
+              <span class="navbar-text">Welcome, {{ username }}</span>
             </li>
             <li class="nav-item">
               <a v-on:click="Logout()" href="" class="nav-link">Logout</a>
@@ -42,13 +42,40 @@
   export default {
     data() {
       return {
-        isAuth: function() { return this.$cookies.isKey("session") }
+        isAuth: false,
+        username: ""
+      }
+    },
+    updated() {
+      console.log("TEST: " + this.isAuth);
+      if (this.$cookies.isKey("session")) {
+        this.isAuth = true;
+        this.$http.get("http://localhost:4940/api/v1/users/" + this.$cookies.get("session").userId)
+          .then(function (response) {
+            this.username = response.body.username;
+          }, function(error) {
+            console.log(error);
+          });
+      }
+    },
+    mounted: function() {
+      if (this.$cookies.isKey("session")) {
+        this.isAuth = true;
+        this.$http.get("http://localhost:4940/api/v1/users/" + this.$cookies.get("session").userId)
+          .then(function(response) {
+            this.username = response.body.username;
+          })
+      } else {
+        this.isAuth = false;
+        this.username = "";
       }
     },
     methods: {
       Logout: function() {
         this.$http.headers.common['X-Authorization'] = "";
         this.$cookies.remove("session");
+        this.isAuth = false;
+        this.username = "";
         this.$router.push('/');
       }
     }
@@ -95,5 +122,9 @@
 
   .left {
     float: left
+  }
+
+  .router-link-exact-active {
+    color: #fff !important;
   }
 </style>

@@ -4,11 +4,16 @@
       <form v-on:submit="login()">
         <div class="form-group">
           <label>Username or Email</label>
-          <input type="text" class="form-control input" v-model="username">
+          <input type="text" class="form-control input" v-model="username" required>
         </div>
-        <div class="form-group">
+        <div class="form-group" style="margin-bottom: 1rem;">
           <label>Password</label>
-          <input type="password" class="form-control input" v-model="password">
+          <input type="password" class="form-control input" v-model="password" required>
+        </div>
+        <div v-if="errorFlag">
+          <div class="error text-danger" style="margin-bottom: 1rem;">
+            {{ error }}
+          </div>
         </div>
         <button type="button" class="btn btn-primary" v-on:click="login()">Login</button>
       </form>
@@ -18,33 +23,44 @@
 
 <script>
     export default {
-        data() {
-          return {
-            error: "",
-            errorFlag: "",
-            username: "",
-            password: ""
-          }
-        },
-      mounted: function() {
-
+      data() {
+        return {
+          error: "",
+          errorFlag: false,
+          username: "",
+          password: ""
+        }
       },
       methods: {
-          login: function() {
-            let data = {
-              username: this.username,
-              password: this.password,
-              email: "testdudette@gmail.com"
-            };
-            console.log(data);
-            this.$http.post("http://localhost:4940/api/v1/users/login", JSON.stringify(data))
-              .then(function(response) {
-                this.$http.headers.common['X-Authorization'] = response.body.token;
-                this.$cookies.set("session", response.body);
-                this.$router.push('/');
-              }, function(err) {
-                console.log(err);
-              });
+        login: function() {
+          // Check both fields have atleast some data
+          if (this.username == "" || this.password == "") {
+            this.error = "Please enter a username and password";
+            this.errorFlag = true;
+            return;
+          }
+
+          let data = {
+            password: this.password,
+          };
+
+          // Check if email or username entered
+          let re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+          console.log(re.test(this.username));
+          if (re.test(this.username)) data.email = this.username;
+          else data.username = this.username;
+
+          // Make the request to the api
+          this.$http.post("http://localhost:4940/api/v1/users/login", JSON.stringify(data))
+            .then(function(response) {
+              this.$http.headers.common['X-Authorization'] = response.body.token;
+              this.$cookies.set("session", response.body);
+              this.$router.push('/');
+            }, function(err) {
+              this.error = "Invalid username or password";
+              this.errorFlag = true;
+              return;
+            });
           }
       }
     }
@@ -88,5 +104,9 @@
     padding: 0;
     float: left;
     margin-left: 0.5rem;
+  }
+
+  .text-danger {
+    font-size: 15px;
   }
 </style>
