@@ -46,7 +46,6 @@
 
           // Check if email or username entered
           let re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-          console.log(re.test(this.username));
           if (re.test(this.username)) data.email = this.username;
           else data.username = this.username;
 

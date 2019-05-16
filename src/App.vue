@@ -47,15 +47,12 @@
       }
     },
     updated() {
-      console.log("TEST: " + this.isAuth);
       if (this.$cookies.isKey("session")) {
         this.isAuth = true;
         this.$http.get("http://localhost:4940/api/v1/users/" + this.$cookies.get("session").userId)
           .then(function (response) {
             this.username = response.body.username;
-          }, function(error) {
-            console.log(error);
-          });
+          }, function(error) {});
       }
     },
     mounted: function() {
