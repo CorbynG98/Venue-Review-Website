@@ -20,7 +20,7 @@
               <span class="navbar-text">Welcome, {{ username }}</span>
             </li>
             <li class="nav-item">
-              <a v-on:click="Logout()" href="" class="nav-link">Logout</a>
+              <a v-on:click="Logout()" class="nav-link">Logout</a>
             </li>
           </div>
           <div v-else>
@@ -72,11 +72,16 @@
     methods: {
       Logout: function() {
         if (!this.$cookies.isKey("session")) return;
-        this.$http.headers.common['X-Authorization'] = "";
-        this.$cookies.remove("session");
-        this.isAuth = false;
-        this.username = "";
-        this.$router.push('/');
+        let headers = {
+          'X-Authorization': this.$cookies.get("session").token
+        };
+        this.$http.post("http://localhost:4940/api/v1/users/logout", JSON.stringify({}), {headers})
+          .then(function(response) {
+            this.$cookies.remove("session");
+            this.isAuth = false;
+            this.username = "";
+            this.$router.push('/');
+          }, function(error) {});
       }
     }
   }
@@ -130,5 +135,9 @@
 
   .body-content {
     margin-top: 3.5rem;
+  }
+
+  .nav-link {
+    cursor: pointer;
   }
 </style>
