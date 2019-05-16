@@ -8,45 +8,61 @@
         </div>
         <div v-else>
             <b-container fluid>
-                <b-row>
-                    <b-col md="6" class="my-1">
-                        <b-form-group label-cols-sm="3" label="Filter" class="mb-0">
-                            <b-input-group>
-                                <b-form-input v-model="filter" placeholder="Type to Search"></b-form-input>
-                                <b-input-group-append>
-                                    <b-button :disabled="!filter" @click="filter = ''">Clear</b-button>
-                                </b-input-group-append>
-                            </b-input-group>
-                        </b-form-group>
-                    </b-col>
+                <div style="display: block;">
+                    <b-row>
+                        <b-col md="6" class="my-1">
+                            <b-form-group label-cols-sm="3" label="Filter" class="mb-0">
+                                <b-input-group>
+                                    <b-form-input v-model="filter" placeholder="Type to Search"></b-form-input>
+                                    <b-input-group-append>
+                                        <b-button :disabled="!filter" @click="filter = ''">Clear</b-button>
+                                    </b-input-group-append>
+                                </b-input-group>
+                            </b-form-group>
+                        </b-col>
 
-                    <b-col md="6" class="my-1">
-                        <b-form-group label-cols-sm="3" label="Select City" class="mb-0">
-                            <b-input-group>
-                                <b-form-select v-model="sortBy" :options="cities" v-on:change="filterCities">
+                        <b-col md="6" class="my-1">
+                            <b-form-group label-cols-sm="3" label="Select City" class="mb-0">
+                                <b-input-group>
+                                    <b-form-select v-model="citySort" :options="cities" v-on:change="filterCities">
+                                        <option slot="first" :value="null">-- All --</option>
+                                    </b-form-select>
+                                </b-input-group>
+                            </b-form-group>
+                        </b-col>
+
+                        <b-col md="6" class="my-1">
+                            <b-form-group label-cols-sm="3" label="Category" class="mb-0" style="filterCities">
+                                <b-form-select v-model="categorySort" label="test" :options="categoryOptions" v-on:change="">
                                     <option slot="first" :value="null">-- All --</option>
                                 </b-form-select>
-                            </b-input-group>
-                        </b-form-group>
-                    </b-col>
+                            </b-form-group>
+                        </b-col>
 
-                    <b-col md="6" class="my-1">
-                        <b-form-group label-cols-sm="3" label="Sort direction" class="mb-0">
-                            <b-input-group>
-                                <b-form-select v-model="sortDirection" slot="append">
-                                    <option value="asc">Asc</option> <option value="desc">Desc</option>
-                                    <option value="last">Last</option>
+                        <b-col md="6" class="my-1">
+                            <b-form-group label-cols-sm="3" label="Per page" class="mb-0">
+                                <b-form-select v-model="perPage" :options="pageOptions"></b-form-select>
+                            </b-form-group>
+                        </b-col>
+
+                        <b-col md="6" class="my-1">
+                            <b-form-group label-cols-sm="3" label="Min Star Rating" class="mb-0">
+                                <b-form-select v-model="minStar" label="test" :options="starOptions" v-on:change="filterCities">
+                                    <option slot="first" :value="null">-- All --</option>
                                 </b-form-select>
-                            </b-input-group>
-                        </b-form-group>
-                    </b-col>
+                            </b-form-group>
+                        </b-col>
 
-                    <b-col md="6" class="my-1">
-                        <b-form-group label-cols-sm="3" label="Per page" class="mb-0">
-                            <b-form-select v-model="perPage" :options="pageOptions"></b-form-select>
-                        </b-form-group>
-                    </b-col>
-                </b-row>
+                        <b-col md="6" class="my-1">
+                            <b-form-group label-cols-sm="3" label="Max Cost Rating" class="mb-0">
+                                <b-form-select v-model="maxCost" label="test" :options="costOptions" v-on:change="filterCities">
+                                    <option slot="first" :value="null">-- All --</option>
+                                </b-form-select>
+                            </b-form-group>
+                        </b-col>
+                    </b-row>
+                </div>
+
 
                 <b-table
                     show-empty
@@ -115,10 +131,17 @@
                 currentPage: 1,
                 perPage: 10,
                 pageOptions: [10, 15, 20],
+                starOptions: [1, 2, 3, 4, 5],
+                costOptions: ['Free', '$', '$$', '$$$', '$$$$'],
+                categoryOptions: [],
                 sortBy: null,
                 sortDesc: false,
                 sortDirection: 'asc',
                 filter: null,
+                citySort: null,
+                minStar: null,
+                maxCost: null,
+                categorySort: null,
                 cities: ["Christchurch", "Auckland"],
                 infoModal: {
                     id: 'info-modal',
@@ -131,7 +154,10 @@
             this.$http.get("http://localhost:4940/api/v1/categories")
                 .then(function(response) {
                     this.categories = response.body;
-                    console.log(this.categories);
+                    for(let cat in this.categories) {
+                        let name = this.categories[cat].categoryName;
+                        this.categoryOptions.push(name);
+                    }
                 });
             this.getVenues();
             this.totalRows = this.items.length
@@ -160,11 +186,25 @@
             },
 
             filterCities: function() {
-                if (this.sortBy == null) return this.getVenues();
-                let data = {
-                    city: this.sortBy
-                };
-                this.$http.get("http://localhost:4940/api/v1/venues", {params: data})
+                let queryParams = {};
+                if (this.citySort != null) {
+                    queryParams.city = this.citySort;
+                }
+                if (this.categorySort != null) {
+                    queryParams.category = this.categorySort;
+                }
+                if (this.minStar != null) {
+                    queryParams.minStarRating = this.minStar;
+                }
+                if (this.maxCost != null) {
+                    if (this.maxCost === 'Free') queryParams.maxCostRating = 0;
+                    if (this.maxCost === '$') queryParams.maxCostRating = 1;
+                    if (this.maxCost === '$$') queryParams.maxCostRating = 2;
+                    if (this.maxCost === '$$$') queryParams.maxCostRating = 3;
+                    if (this.maxCost === '$$$$') queryParams.maxCostRating = 4;
+                }
+                if (queryParams === {}) return this.getVenues();
+                this.$http.get("http://localhost:4940/api/v1/venues", {params: queryParams})
                     .then(function(response) {
                         this.items = response.body;
                         for (let venue in this.items) {
@@ -200,5 +240,10 @@
         text-decoration: none;
         color: rgb(88, 124, 160);
         color: #fff;
+    }
+
+    .smaller {
+        width: 30%;
+        float: left;
     }
 </style>
