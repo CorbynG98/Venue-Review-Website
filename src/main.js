@@ -3,6 +3,7 @@ import Users from './Users.vue';
 import Venues from './Venues.vue';
 import Login from './Login.vue';
 import Signup from './Signup.vue';
+import 'bootstrap-vue/dist/bootstrap-vue.css'
 
 import Vue from 'vue';
 import App from './App.vue';
@@ -17,6 +18,9 @@ import VueCookies from 'vue-cookies';
 VueCookies.config('1d');
 Vue.use(VueCookies);
 
+import BootstrapVue from 'bootstrap-vue';
+Vue.use(BootstrapVue);
+
 Vue.http.emulateJSON = true;
 
 const routes = [
@@ -28,6 +32,11 @@ const routes = [
   {
     path: "/Venues",
     name: 'Venues',
+    component: Venues
+  },
+  {
+    path: "/Venues/:venueId",
+    name: 'Venue',
     component: Venues
   },
   {
@@ -44,7 +53,7 @@ const routes = [
     path: "/Signup",
     name: 'Signup',
     component: Signup
-  }
+  },
 ];
 
 const router = new VueRouter({

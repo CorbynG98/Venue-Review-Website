@@ -1,122 +1,204 @@
 <template>
     <div>
-      Venues (here so I can easily distingiush)
-      <div class="venueFilters">
-        This is where filter options will be
-      </div>
-      <div v-for="venue in venues">
-        <div class="venueBox">
-          <div class="venueImage">
-              this is the image
-          </div>
-          <div class="venueInfo">
-            <div class="venueName">
-              {{ venue.venueName }}
+        <div v-if="$route.params.venueId">
+            <div class="singleVenue">
+                This is where all muy shit will go
             </div>
-            <div class="StarCostRating">
-              <div class="starRating">
-                <div class="stars-outer">
-                  <div class="stars-inner" v-bind:style="{width: getPercentage(venue.meanStarRating)}"></div>
-                </div>
-              </div>
-              <div class="splitter">&nbsp&nbsp|&nbsp&nbsp</div>
-              <div class="costRating">
-                $$
-              </div>
-            </div>
-          </div>
+            <router-link :to="{name: 'Venues'}" class="link link-black" style="color: black;">Return to venues</router-link>
         </div>
-      </div>
+        <div v-else>
+            <b-container fluid>
+                <b-row>
+                    <b-col md="6" class="my-1">
+                        <b-form-group label-cols-sm="3" label="Filter" class="mb-0">
+                            <b-input-group>
+                                <b-form-input v-model="filter" placeholder="Type to Search"></b-form-input>
+                                <b-input-group-append>
+                                    <b-button :disabled="!filter" @click="filter = ''">Clear</b-button>
+                                </b-input-group-append>
+                            </b-input-group>
+                        </b-form-group>
+                    </b-col>
+
+                    <b-col md="6" class="my-1">
+                        <b-form-group label-cols-sm="3" label="Select City" class="mb-0">
+                            <b-input-group>
+                                <b-form-select v-model="sortBy" :options="cities" v-on:change="filterCities">
+                                    <option slot="first" :value="null">-- All --</option>
+                                </b-form-select>
+                            </b-input-group>
+                        </b-form-group>
+                    </b-col>
+
+                    <b-col md="6" class="my-1">
+                        <b-form-group label-cols-sm="3" label="Sort direction" class="mb-0">
+                            <b-input-group>
+                                <b-form-select v-model="sortDirection" slot="append">
+                                    <option value="asc">Asc</option> <option value="desc">Desc</option>
+                                    <option value="last">Last</option>
+                                </b-form-select>
+                            </b-input-group>
+                        </b-form-group>
+                    </b-col>
+
+                    <b-col md="6" class="my-1">
+                        <b-form-group label-cols-sm="3" label="Per page" class="mb-0">
+                            <b-form-select v-model="perPage" :options="pageOptions"></b-form-select>
+                        </b-form-group>
+                    </b-col>
+                </b-row>
+
+                <b-table
+                    show-empty
+                    stacked="md"
+                    :items="items"
+                    :fields="fields"
+                    :current-page="currentPage"
+                    :per-page="perPage"
+                    :filter="filter"
+                    :sort-by.sync="sortBy"
+                    :sort-desc.sync="sortDesc"
+                    :sort-direction="sortDirection"
+                    :filter-function="filterVenues"
+                    @filtered="onFiltered">
+                    <template slot="name" slot-scope="row">
+                        {{ row.value.first }} {{ row.value.last }}
+                    </template>
+
+                    <template slot="actions" slot-scope="row">
+                        <b-button size="sm">
+                            <router-link :to="{name: 'Venue', params: { venueId: row.item.venueId}}" class="link">Venue Details</router-link>
+                        </b-button>
+                    </template>
+                </b-table>
+
+                <b-row>
+                    <b-col md="6" class="my-1">
+                        <b-pagination
+                            v-model="currentPage"
+                            :total-rows="totalRows"
+                            :per-page="perPage"
+                            class="my-0"
+                        ></b-pagination>
+                    </b-col>
+                </b-row>
+            </b-container>
+        </div>
     </div>
 </template>
 
 <script>
     export default {
         data() {
-          return {
-            error: "",
-            errorFlag: "",
-            venues: []
-          }
+            return {
+                error: "",
+                errorFlag: "",
+                items: [],
+                categories: [],
+                fields: [
+                    { key: 'primaryPhoto', label: 'Image', sortable: false },
+                    { key: 'venueName', label: 'Name', sortable: true, class: 'text-center', sortDirection: 'asc' },
+                    { key: 'categoryId.categoryName', label: 'Category', sortable: true, class: 'text-center', sortDirection: 'asc' },
+                    { key: 'city', label: 'City', sortable: true, class: 'text-center', sortDirection: 'asc' },
+                    { key: 'shortDescription', label: 'Desc', class: 'text-center', sortable: false },
+                    { key: 'meanStarRating', label: 'Star Rating', sortable: true, formatter: value => {
+                            if (value == 0 || value == null) return '3.00';
+                            return value.toFixed(2);
+                        }, class: 'text-center', sortDirection: 'asc' },
+                    { key: 'modeCostRating', label: 'Cost Rating', sortable: true, formatter: value => {
+                        if (value == 0 || value == null) return "Free";
+                        return "$".repeat(value);
+                    }, class: 'text-center', sortDirection: 'asc' },
+                    { key: 'actions', label: 'Actions', sortable: false},
+                ],
+                totalRows: 1,
+                currentPage: 1,
+                perPage: 10,
+                pageOptions: [10, 15, 20],
+                sortBy: null,
+                sortDesc: false,
+                sortDirection: 'asc',
+                filter: null,
+                cities: ["Christchurch", "Auckland"],
+                infoModal: {
+                    id: 'info-modal',
+                    title: '',
+                    content: ''
+                }
+            }
         },
-      mounted: function() {
-        this.getVenues();
-      },
-      methods: {
-        getVenues: function() {
-          this.$http.get("http://localhost:4940/api/v1/venues")
-            .then(function(response) {
-              console.log(response);
-              this.venues = response.body;
-            }, function(error) {
-              console.log(error);
-            });
+        mounted: function() {
+            this.$http.get("http://localhost:4940/api/v1/categories")
+                .then(function(response) {
+                    this.categories = response.body;
+                    console.log(this.categories);
+                });
+            this.getVenues();
+            this.totalRows = this.items.length
         },
+        methods: {
+            getVenues: function() {
+                this.$http.get("http://localhost:4940/api/v1/venues")
+                    .then(function(response) {
+                        this.items = response.body;
+                        for (let venue in this.items) {
+                            for(let cat in this.categories) {
+                                if (parseInt(cat) + 1 === parseInt(this.items[venue].categoryId)) {
+                                    this.items[venue].categoryId = this.categories[cat];
+                                    continue;
+                                }
+                            }
+                        }
 
-        getPercentage: function(rating) {
-          console.log(((5 / rating) * 100).toString() + '%');
-          return ((rating/5) * 100).toString() + '%';
+                    }, function(error) {
+                        console.log(error);
+                    });
+            },
+
+            filterVenues: function(data, string) {
+                return data.venueName.includes(string);
+            },
+
+            filterCities: function() {
+                if (this.sortBy == null) return this.getVenues();
+                let data = {
+                    city: this.sortBy
+                };
+                this.$http.get("http://localhost:4940/api/v1/venues", {params: data})
+                    .then(function(response) {
+                        this.items = response.body;
+                        for (let venue in this.items) {
+                            for(let cat in this.categories) {
+                                if (parseInt(cat) + 1 === parseInt(this.items[venue].categoryId)) {
+                                    this.items[venue].categoryId = this.categories[cat];
+                                    continue;
+                                }
+                            }
+                        }
+                    }, function(err) {
+                        console.log(err);
+                    })
+            },
+
+            onFiltered(filteredItems) {
+                // Trigger pagination to update the number of buttons/pages due to filtering
+                this.totalRows = filteredItems.length;
+                this.currentPage = 1;
+            },
         }
-      }
     }
 </script>
 
 <style scoped>
-  .venueBox {
-    display: inline-flex;
-    height: 15rem;
-    padding: 2rem;
-    width: 100%;
-  }
+    .link {
+        color: rgb(44, 62, 80);
+        color: #fff;
+        transition: 0.1s;
+    }
 
-  .venueImage {
-    height: 11rem;
-    width: 15rem;
-    margin-right: 1rem;
-    background-color: lightgrey;
-  }
-
-  .venueName {
-    font-size: 1.2rem;
-    text-align: left;
-    font-weight: bold;
-    width: 100%;
-  }
-
-  .venueInfo {
-    width: 90%;
-    margin-left: 1rem;
-    display: block;
-  }
-
-  .venueName {
-    float: left;
-  }
-
-  .stars-outer {
-    display: inline-block;
-    position: relative;
-    font-family: FontAwesome;
-  }
-
-  .stars-outer::before {
-    content: "\f006 \f006 \f006 \f006 \f006";
-  }
-
-  .stars-inner {
-    position: absolute;
-    top: 0;
-    left: 0;
-    white-space: nowrap;
-    overflow: hidden;
-  }
-
-  .stars-inner::before {
-    content: "\f005 \f005 \f005 \f005 \f005";
-    color: #f8ce0b;
-  }
-
-  .StarCostRating {
-    text-align: left;
-  }
+    .link:hover {
+        text-decoration: none;
+        color: rgb(88, 124, 160);
+        color: #fff;
+    }
 </style>

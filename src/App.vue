@@ -34,7 +34,7 @@
         </ul>
       </div>
     </nav>
-    <div class="body-content container">
+    <div class="body-content">
       <router-view></router-view>
     </div>
   </div>
@@ -80,7 +80,6 @@
             this.$cookies.remove("session");
             this.isAuth = false;
             this.username = "";
-            this.$router.push('/');
           }, function(error) {});
       }
     }
@@ -134,7 +133,7 @@
   }
 
   .body-content {
-    margin-top: 3.5rem;
+    margin-top: 4rem;
   }
 
   .nav-link {
