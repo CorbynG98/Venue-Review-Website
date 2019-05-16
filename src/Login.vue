@@ -55,7 +55,6 @@
           // Make the request to the api
           this.$http.post("http://localhost:4940/api/v1/users/login", JSON.stringify(data))
             .then(function(response) {
-              this.$http.headers.common['X-Authorization'] = response.body.token;
               this.$cookies.set("session", response.body);
               this.$router.push('/');
             }, function(err) {

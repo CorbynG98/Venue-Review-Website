@@ -4,27 +4,32 @@
       <form v-on:submit="login()">
         <div class="form-group">
           <label>First Name</label>
-          <input type="text" class="form-control input" v-model="firstName" required>
+          <input v-bind:class="[validFName ? 'valid' : 'error']" maxlength="64" type="text" class="form-control input" v-model="firstName" required>
         </div>
         <div class="form-group">
           <label>Family Name</label>
-          <input type="text" class="form-control input" v-model="lastName" required>
+          <input v-bind:class="[validLName ? 'valid' : 'error']" maxlength="64" type="text" class="form-control input" v-model="lastName" required>
         </div>
         <div class="form-group">
           <label>Username</label>
-          <input type="text" class="form-control input" v-model="username" required>
+          <input v-bind:class="[validUsername ? 'valid' : 'error']" maxlength="64" type="text" class="form-control input" v-model="username" required>
         </div>
         <div class="form-group">
           <label>Email</label>
-          <input type="text" class="form-control input" v-model="email" required>
+          <input v-bind:class="[validEmail ? 'valid' : 'error']" type="text" class="form-control input" v-model="email" required>
         </div>
         <div class="form-group">
           <label>Password</label>
-          <input v-bind:class="{ error: checkPass, valid: samePass }" type="password" class="form-control input pass" v-model="password" required>
+          <input v-bind:class="[checkPasswords ? 'valid' : 'error']" type="password" class="form-control input pass" v-model="password" required>
         </div>
         <div class="form-group">
           <label>Confirm Password</label>
-          <input v-bind:class="{ error: checkPass, valid: samePass }" type="password" class="form-control input pass" v-model="confirmPassword" required>
+          <input v-bind:class="[checkPasswords ? 'valid' : 'error']" type="password" class="form-control input pass" v-model="confirmPassword" required>
+        </div>
+        <div v-if="errorFlag">
+          <div class="text-danger" style="margin-bottom: 1rem;">
+            {{ error }}
+          </div>
         </div>
         <button type="button" class="btn btn-primary" v-on:click="signup()">Sign up</button>
       </form>
@@ -48,18 +53,54 @@
           }
         },
       computed: {
-        'checkPass': function() {
-          this.passCheck = this.password != this.confirmPassword;
+        'checkPasswords': function() {
+          if (this.password == "" && this.confirmPassword == "") {
+            this.passCheck = false;
+            return false;
+          }
+          this.passCheck = this.password == this.confirmPassword;
           return this.passCheck;
         },
-        'samePass': function() {
-          if (!this.passCheck && this.password != "" && this.confirmPassword != "") return true;
-          return false;
+        'validFName': function() {
+          return this.firstName.length >= 2;
+        },
+        'validLName': function() {
+          return this.lastName.length >= 2;
+        },
+        'validUsername': function() {
+          return this.username.length >= 2;
+        },
+        'validEmail': function() {
+          let re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+          return re.test(this.email);
         }
       },
       methods: {
         signup: function() {
-          // This is where the code to sign up the user will go
+          // Make sure all the data is valid before posting
+          if (!this.checkPasswords || !this.validFName || !this.validLName || !this.validUsername || !this.validEmail) return;
+          let data = {
+            username: this.username,
+            givenName: this.firstName,
+            familyName: this.lastName,
+            email: this.email,
+            password: this.password
+          };
+          this.$http.post("http://localhost:4940/api/v1/users", JSON.stringify(data))
+            .then(function(response) {
+              let loginData = {
+                username: data.username,
+                password: data.password
+              };
+              this.$http.post("http://localhost:4940/api/v1/users/login", JSON.stringify(loginData))
+                .then(function(response) {
+                  this.$cookies.set("session", response.body);
+                  this.$router.push('/');
+                }, function(err) {});
+            }, function(err) {
+              this.error = "Username or email already taken";
+              this.errorFlag = true;
+            })
         }
       }
     }
@@ -110,5 +151,9 @@
     border-color: rgba(43, 255, 75, 0.8);
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px rgba(43, 255, 75, 0.6);
     outline: 0 none;
+  }
+
+  .text-danger {
+    font-size: 15px;
   }
 </style>
