@@ -31,6 +31,9 @@
           password: ""
         }
       },
+      mounted: function() {
+        if (this.$cookies.isKey("session")) this.$router.push('/')
+      },
       methods: {
         login: function() {
           // Check both fields have atleast some data

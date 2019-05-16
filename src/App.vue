@@ -69,6 +69,7 @@
     },
     methods: {
       Logout: function() {
+        if (this.$cookies.isKey("session")) return;
         this.$http.headers.common['X-Authorization'] = "";
         this.$cookies.remove("session");
         this.isAuth = false;
