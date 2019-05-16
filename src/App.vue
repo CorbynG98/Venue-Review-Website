@@ -34,7 +34,7 @@
         </ul>
       </div>
     </nav>
-    <div class="body-content">
+    <div class="body-content container">
       <router-view></router-view>
     </div>
   </div>
