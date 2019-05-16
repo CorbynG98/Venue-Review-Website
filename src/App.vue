@@ -1,6 +1,6 @@
 <template>
   <div id = "app">
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
       <a class="navbar-brand" href="#">YEETUS</a>
       <div class="floater">
         <ul class="navbar-nav mr-auto left">
@@ -34,7 +34,9 @@
         </ul>
       </div>
     </nav>
-    <router-view></router-view>
+    <div class="body-content">
+      <router-view></router-view>
+    </div>
   </div>
 </template>
 
@@ -69,7 +71,7 @@
     },
     methods: {
       Logout: function() {
-        if (this.$cookies.isKey("session")) return;
+        if (!this.$cookies.isKey("session")) return;
         this.$http.headers.common['X-Authorization'] = "";
         this.$cookies.remove("session");
         this.isAuth = false;
@@ -124,5 +126,9 @@
 
   .router-link-exact-active {
     color: #fff !important;
+  }
+
+  .body-content {
+    margin-top: 3.5rem;
   }
 </style>

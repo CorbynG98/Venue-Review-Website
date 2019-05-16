@@ -76,7 +76,7 @@
     padding: 3% 5%;
     width: 40%;
     margin: auto;
-    top: 5rem;
+    top: 7rem;
   }
 
   .form-group {
@@ -85,7 +85,6 @@
 
   .outer {
     width: 100%;
-    height: 100vh;
     padding: 0;
     margin: 0;
   }
