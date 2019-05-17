@@ -41,6 +41,7 @@
 </template>
 
 <script>
+    import url from './globalVars.js';
   export default {
     data() {
       return {
@@ -51,7 +52,7 @@
     updated() {
       if (this.$cookies.isKey("session")) {
         this.isAuth = true;
-        this.$http.get("http://localhost:4940/api/v1/users/" + this.$cookies.get("session").userId)
+        this.$http.get(url + "/users/" + this.$cookies.get("session").userId)
           .then(function (response) {
             this.username = response.body.username;
           }, function(error) {});
@@ -60,7 +61,7 @@
     mounted: function() {
       if (this.$cookies.isKey("session")) {
         this.isAuth = true;
-        this.$http.get("http://localhost:4940/api/v1/users/" + this.$cookies.get("session").userId)
+        this.$http.get(url + "/users/" + this.$cookies.get("session").userId)
           .then(function(response) {
             this.username = response.body.username;
           })
@@ -75,7 +76,7 @@
         let headers = {
           'X-Authorization': this.$cookies.get("session").token
         };
-        this.$http.post("http://localhost:4940/api/v1/users/logout", JSON.stringify({}), {headers})
+        this.$http.post(url + "/users/logout", JSON.stringify({}), {headers})
           .then(function(response) {
             this.$cookies.remove("session");
             this.isAuth = false;

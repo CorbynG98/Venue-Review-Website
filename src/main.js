@@ -3,7 +3,8 @@ import Users from './Users.vue';
 import Venues from './Venues.vue';
 import Login from './Login.vue';
 import Signup from './Signup.vue';
-import 'bootstrap-vue/dist/bootstrap-vue.css'
+import Venue from './Venue.vue';
+import 'bootstrap-vue/dist/bootstrap-vue.css';
 
 import Vue from 'vue';
 import App from './App.vue';
@@ -37,7 +38,7 @@ const routes = [
   {
     path: "/Venues/:venueId",
     name: 'Venue',
-    component: Venues
+    component: Venue
   },
   {
     path: "/Users",

@@ -38,6 +38,7 @@
 </template>
 
 <script>
+    import url from './globalVars.js'
     export default {
         data() {
           return {
@@ -86,17 +87,19 @@
             email: this.email,
             password: this.password
           };
-          this.$http.post("http://localhost:4940/api/v1/users", JSON.stringify(data))
+          this.$http.post(url + "/users", JSON.stringify(data))
             .then(function(response) {
               let loginData = {
                 username: data.username,
                 password: data.password
               };
-              this.$http.post("http://localhost:4940/api/v1/users/login", JSON.stringify(loginData))
+              this.$http.post(url + "/users/login", JSON.stringify(loginData))
                 .then(function(response) {
                   this.$cookies.set("session", response.body);
                   this.$router.push('/');
-                }, function(err) {});
+                }, function(err) {
+                    console.log(err);
+                });
             }, function(err) {
               this.error = "Username or email already taken";
               this.errorFlag = true;

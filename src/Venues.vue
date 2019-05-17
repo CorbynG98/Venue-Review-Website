@@ -1,14 +1,8 @@
 <template>
     <div>
-        <div v-if="$route.params.venueId">
-            <div class="singleVenue">
-                This is where all muy shit will go
-            </div>
-            <router-link :to="{name: 'Venues'}" class="link link-black" style="color: black;">Return to venues</router-link>
-        </div>
-        <div v-else>
-            <b-container fluid>
-                <div style="display: block;">
+        <b-container fluid>
+            <div>
+                <div v-bind:class="[filtersShowing ? 'showing' : 'hiding']" style="transition: display 4s ease 4s; overflow: hidden;">
                     <b-row>
                         <b-col md="6" class="my-1">
                             <b-form-group label-cols-sm="3" label="Filter" class="mb-0">
@@ -32,8 +26,8 @@
                         </b-col>
 
                         <b-col md="6" class="my-1">
-                            <b-form-group label-cols-sm="3" label="Category" class="mb-0" style="filterCities">
-                                <b-form-select v-model="categorySort" label="test" :options="categoryOptions" v-on:change="">
+                            <b-form-group label-cols-sm="3" label="Category" class="mb-0">
+                                <b-form-select v-model="categorySort" :options="categoryOptions" v-on:change="filterCities">
                                     <option slot="first" :value="null">-- All --</option>
                                 </b-form-select>
                             </b-form-group>
@@ -62,48 +56,52 @@
                         </b-col>
                     </b-row>
                 </div>
+                <div class="showFilters">
+                    <a v-on:click="toggleFilters()" class="linkBlack" style="float: left; margin-left: 4.5rem; font-size: 1.5rem; color: blue; display: none;">Show filters</a>
+                </div>
+            </div>
 
 
-                <b-table
-                    show-empty
-                    stacked="md"
-                    :items="items"
-                    :fields="fields"
-                    :current-page="currentPage"
-                    :per-page="perPage"
-                    :filter="filter"
-                    :sort-by.sync="sortBy"
-                    :sort-desc.sync="sortDesc"
-                    :sort-direction="sortDirection"
-                    :filter-function="filterVenues"
-                    @filtered="onFiltered">
-                    <template slot="name" slot-scope="row">
-                        {{ row.value.first }} {{ row.value.last }}
-                    </template>
+            <b-table
+                show-empty
+                stacked="md"
+                :items="items"
+                :fields="fields"
+                :current-page="currentPage"
+                :per-page="perPage"
+                :filter="filter"
+                :sort-by.sync="sortBy"
+                :sort-desc.sync="sortDesc"
+                :sort-direction="sortDirection"
+                :filter-function="filterVenues"
+                @filtered="onFiltered">
+                <template slot="name" slot-scope="row">
+                    {{ row.value.first }} {{ row.value.last }}
+                </template>
 
-                    <template slot="actions" slot-scope="row">
-                        <b-button size="sm">
-                            <router-link :to="{name: 'Venue', params: { venueId: row.item.venueId}}" class="link">Venue Details</router-link>
-                        </b-button>
-                    </template>
-                </b-table>
+                <template slot="actions" slot-scope="row">
+                    <b-button size="sm">
+                        <router-link :to="{name: 'Venue', params: { venueId: row.item.venueId}}" class="link">Venue Details</router-link>
+                    </b-button>
+                </template>
+            </b-table>
 
-                <b-row>
-                    <b-col md="6" class="my-1">
-                        <b-pagination
-                            v-model="currentPage"
-                            :total-rows="totalRows"
-                            :per-page="perPage"
-                            class="my-0"
-                        ></b-pagination>
-                    </b-col>
-                </b-row>
-            </b-container>
-        </div>
+            <b-row>
+                <b-col md="6" class="my-1">
+                    <b-pagination
+                        v-model="currentPage"
+                        :total-rows="totalRows"
+                        :per-page="perPage"
+                        class="my-0"
+                    ></b-pagination>
+                </b-col>
+            </b-row>
+        </b-container>
     </div>
 </template>
 
 <script>
+    import url from './globalVars';
     export default {
         data() {
             return {
@@ -142,6 +140,7 @@
                 minStar: null,
                 maxCost: null,
                 categorySort: null,
+                filtersShowing: true,
                 cities: ["Christchurch", "Auckland"],
                 infoModal: {
                     id: 'info-modal',
@@ -151,7 +150,7 @@
             }
         },
         mounted: function() {
-            this.$http.get("http://localhost:4940/api/v1/categories")
+            this.$http.get(url + "/categories")
                 .then(function(response) {
                     this.categories = response.body;
                     for(let cat in this.categories) {
@@ -164,7 +163,7 @@
         },
         methods: {
             getVenues: function() {
-                this.$http.get("http://localhost:4940/api/v1/venues")
+                this.$http.get(url + "/venues")
                     .then(function(response) {
                         this.items = response.body;
                         for (let venue in this.items) {
@@ -185,13 +184,17 @@
                 return data.venueName.includes(string);
             },
 
+            toggleFilters: function() {
+                this.filtersShowing = !this.filtersShowing;
+            },
+
             filterCities: function() {
                 let queryParams = {};
-                if (this.citySort != null) {
-                    queryParams.city = this.citySort;
-                }
+                if (this.citySort != null) queryParams.city = this.citySort;
                 if (this.categorySort != null) {
-                    queryParams.category = this.categorySort;
+                    for (let cat in this.categories) {
+                        if (this.categories[cat].categoryName === this.categorySort) queryParams.categoryId = this.categories[cat].categoryId;
+                    }
                 }
                 if (this.minStar != null) {
                     queryParams.minStarRating = this.minStar;
@@ -204,7 +207,7 @@
                     if (this.maxCost === '$$$$') queryParams.maxCostRating = 4;
                 }
                 if (queryParams === {}) return this.getVenues();
-                this.$http.get("http://localhost:4940/api/v1/venues", {params: queryParams})
+                this.$http.get(url + "/venues", {params: queryParams})
                     .then(function(response) {
                         this.items = response.body;
                         for (let venue in this.items) {
@@ -242,8 +245,22 @@
         color: #fff;
     }
 
-    .smaller {
-        width: 30%;
-        float: left;
+    .hiding {
+        height: 0;
+    }
+
+    .showing {
+        height: auto;
+    }
+
+    .linkBlack {
+        color: rgb(44, 62, 80);
+        transition: 0.1s;
+    }
+
+    .linkBlack:hover {
+        cursor: pointer;
+        text-decoration: none;
+        color: rgb(88, 124, 160);
     }
 </style>

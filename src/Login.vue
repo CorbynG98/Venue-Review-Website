@@ -22,6 +22,7 @@
 </template>
 
 <script>
+    import url from './globalVars.js'
     export default {
       data() {
         return {
@@ -53,7 +54,7 @@
           else data.username = this.username;
 
           // Make the request to the api
-          this.$http.post("http://localhost:4940/api/v1/users/login", JSON.stringify(data))
+          this.$http.post(url + "/users/login", JSON.stringify(data))
             .then(function(response) {
               this.$cookies.set("session", response.body);
               this.$router.push('/');
