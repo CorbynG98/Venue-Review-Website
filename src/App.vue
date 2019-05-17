@@ -148,13 +148,13 @@
     }
 
     .row30 {
-        max-width: 40%;
-        min-width: 40%;
+        max-width: 25rem;
+        min-width: 25rem;
     }
 
     .row70 {
         text-align: left;
-        max-width: 60%;
-        min-width: 60%;
+        max-width: 45rem;
+        min-width: 45rem;
     }
 </style>

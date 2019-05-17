@@ -56,9 +56,30 @@
                 </h3>
             </div>
             <div class="reviewsTable">
+                <div class="reviewTitle"> <h2>Reviews</h2> </div>
                 <b-table striped hover :items="reviewItems" :fields="reviewFields">
                     <template slot="reviewDetails" slot-scope="row">
-                        <div style="height: 10rem; background-color: red;">
+                        <div style="height: 10rem;">
+                            <div class="detailsTopRow">
+                                <div class="profileImage">
+                                    <b-img v-bind:src="getProfileImgLink(row.item.reviewAuthor.userId)" width="100" height="100"></b-img>
+                                </div>
+                                <div class="UsernameAndPosted">
+                                    <h2>{{ row.item.reviewAuthor.username }}</h2>
+                                    <h2 style="font-size: 1.5rem;">{{ formatDateString(row.item.timePosted, false) }}</h2>
+                                </div>
+                            </div>
+                            <div class="starAndCostRating" style="display: inline-flex; width: 100%;">
+                                <div class="starRating" style="display: inline-flex; line-height: 4rem;">
+                                    Stars:&nbsp
+                                    <div class="stars-outer">
+                                        <div class="stars-inner" v-bind:style="{width: getPercentage(row.item.starRating)}"></div>
+                                    </div>
+                                </div>
+                                <div class="costRating" style="display: inline-flex; line-height: 4rem;">
+                                    Cost Rating:&nbsp{{ getDollars(row.item.costRating) }}
+                                </div>
+                            </div>
                         </div>
                     </template>
                 </b-table>
@@ -82,11 +103,12 @@
                             return value.toFixed(2);
                         }, sortable: false },
                     { key: 'modeCostRating', label: 'Cost Rating', formatter: value => {
-                            if (value == 0 || value == null) return "Free";
-                            return "$".repeat(value);
+                            return this.getDollars(value);
                         }, sortable: false },
                     { key: 'admin.username', label: 'Admin Username', sortable: false },
-                    { key: 'actions', label: ''}
+                    { key: 'dateAdded', label: 'Created', formatter: value =>  {
+                            return this.formatDateString(value, false, false);
+                        }}
                 ],
                 reviewFields: [
                     { key: 'reviewDetails', label: 'Details', class: 'row30'},
@@ -151,6 +173,16 @@
                 return this.images.length != 0;
             },
 
+            getProfileImgLink: function(userId) {
+                return '/src/assets/default-profile.png';
+                return url + '/users/' + userId + '/photo';
+            },
+
+            getDollars: function(value) {
+                if (value == 0 || value == null) return "Free";
+                return "$".repeat(value);
+            },
+
             showMoreDesc: function() {
                 if (this.showingFull) {
                     this.description = this.venue.shortDescription;
@@ -161,6 +193,27 @@
                 this.description = this.venue.shortDescription + " " +this.venue.longDescription;
                 this.showingFull = true;
                 this.showText = "Show less";
+            },
+
+            formatDateString: function(dateString, long, time=true) {
+                let date = new Date(dateString);
+                if (long) {
+                    let dateOptions = {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    };
+                    return date.toLocaleDateString('en-NZ', dateOptions);
+                }
+                if (time) {
+                    return (date.getFullYear() + "/" + this.padDateTime(date.getMonth() + 1) + "/" + this.padDateTime(date.getDate()) + " -- " + this.padDateTime(date.getHours()) + ":" + this.padDateTime(date.getMinutes()) + ":" + this.padDateTime(date.getSeconds()));
+                }
+                return (date.getFullYear() + "/" + this.padDateTime(date.getMonth() + 1) + "/" + this.padDateTime(date.getDate()));
+            },
+
+            padDateTime: function(n) {
+                return n<10 ? '0'+n : n;
             },
 
             getPercentage: function(rating) {
@@ -251,5 +304,25 @@
     .showMore:hover {
         cursor: pointer;
         color: blue !important;
+    }
+
+    .profileImage {
+        float: left;
+    }
+
+    .detailsTopRow {
+        height: 100px;
+    }
+
+    .costRating {
+        margin-left: auto;
+        margin-right: 1rem;
+        float: right;
+    }
+
+    .starRating {
+        margin-left: 1rem;
+        margin-right: auto;
+        float: left;
     }
 </style>
