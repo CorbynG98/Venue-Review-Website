@@ -1,7 +1,12 @@
 <template>
     <b-container>
         <router-link :to="{name: 'Venues'}" class="linkBlack">Return to venue list</router-link>
-        <div>
+        <div v-if="isBusy">
+            <div class="text-center">
+                <b-spinner variant="primary" label="Spinning"></b-spinner>
+            </div>
+        </div>
+        <div v-else>
             <b-carousel
                 id="carousel-1"
                 v-model="slide"
@@ -16,7 +21,7 @@
                 @sliding-end="onSlideEnd">
                 <div v-if="imageExists()">
                     <div v-for="image in images">
-                        <b-carousel-slide v-bind:img-src='image.src' alt="">
+                        <b-carousel-slide v-bind:img-src='image.src'>
                             <h1>{{ image.desc }}</h1>
                         </b-carousel-slide>
                     </div>
@@ -45,10 +50,8 @@
                 errorFlag: false,
                 slide: 0,
                 sliding: null,
-                images: [{
-                    src: "https://summer.pes.edu/wp-content/uploads/2019/02/default-2.jpg",
-                    desc: "Testing if this actually works"
-                }],
+                isBusy: true,
+                images: [],
                 venue: ''
             }
         },
@@ -58,9 +61,10 @@
                     this.venue = response.body;
                     for (let photo in this.venue.photos) {
                         let image = this.venue.photos[photo];
-                        this.images.push({src: url + "/venues/" + this.$route.params.venueId + "/photos/" + image.photoFilename, desc: image.photoDescription});
+                        let newImage = {src: url + "/venues/" + this.$route.params.venueId + "/photos/" + image.photoFilename, desc: image.photoDescription};
+                        this.images.push(newImage);
                     }
-                    console.log(this.images);
+                    this.isBusy = false;
                 })
         },
         methods: {
