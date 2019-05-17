@@ -10,13 +10,13 @@
             <b-carousel
                 id="carousel-1"
                 v-model="slide"
-                :interval="4000"
+                :interval="1000000"
                 controls
                 indicators
                 background="#ababab"
                 img-width="1024"
-                img-height="200"
-                style="text-shadow: 1px 1px 2px #333;"
+                img-height="480"
+                style="text-shadow: 1px 1px 2px; height: 480px;"
                 @sliding-start="onSlideStart"
                 @sliding-end="onSlideEnd">
                 <div v-if="imageExists()">
@@ -27,16 +27,14 @@
                     </div>
                 </div>
                 <div v-else>
-                    <b-carousel-slide img-src="https://summer.pes.edu/wp-content/uploads/2019/02/default-2.jpg">
+                    <b-carousel-slide img-src="https://summer.pes.edu/wp-content/uploads/2019/02/default-2.jpg" style="height: 480px; background-position: 50% 50%;">
                         <h1>No images found for this venue</h1>
                     </b-carousel-slide>
                 </div>
             </b-carousel>
+            <div class="venueInformation">
 
-            <p class="mt-4">
-                Slide #: {{ slide }}<br>
-                Sliding: {{ sliding }}
-            </p>
+            </div>
         </div>
     </b-container>
 </template>
