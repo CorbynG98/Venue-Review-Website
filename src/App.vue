@@ -146,4 +146,15 @@
         background-position: 50% 50%;
         background-size: contain;
     }
+
+    .row30 {
+        max-width: 40%;
+        min-width: 40%;
+    }
+
+    .row70 {
+        text-align: left;
+        max-width: 60%;
+        min-width: 60%;
+    }
 </style>

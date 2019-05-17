@@ -1,16 +1,19 @@
 <template>
     <b-container>
-        <router-link :to="{name: 'Venues'}" class="linkBlack">Return to venue list</router-link>
         <div v-if="isBusy">
             <div class="text-center">
                 <b-spinner variant="primary" label="Spinning"></b-spinner>
             </div>
         </div>
         <div v-else>
+            <div class="titleArea">
+                <h3 class="venueName"> {{ venue.venueName }} </h3>
+                <router-link :to="{name: 'Venues'}" class="linkBlack return">Return to venue list</router-link>
+            </div>
             <b-carousel
                 id="carousel-1"
                 v-model="slide"
-                :interval="6000"
+                :interval="1000000"
                 controls
                 indicators
                 background="#ababab"
@@ -31,28 +34,34 @@
                 </div>
             </b-carousel>
             <div class="venueInformation">
-                <h3 class="venueName"> {{ venue.venueName }} </h3>
-                <div class="infoCluster" style="display: inline-flex;">
-                    <h4 class="venueCategory">
-                        {{ venue.category.categoryName }}
-                    </h4>
-                    &nbsp&nbsp
-                    <h4 class="venueStarRating">
+                <b-table striped hover :items="detailsItem" :fields="fields">
+                    <template slot="meanStarRating" slot-scope="row">
                         <div class="starRating">
                             <div class="stars-outer">
-                                <div class="stars-inner" v-bind:style="{width: getPercentage(meanStarRating)}"></div>
+                                <div class="stars-inner" v-bind:style="{width: getPercentage(row.item.meanStarRating)}"></div>
                             </div>
                         </div>
-                    </h4>
-                    &nbsp&nbsp
-                    <h4 class="venueCostRating">
-                        {{ modeCostRating }}
-                    </h4>
-                    &nbsp&nbsp
-                    <h4 class="venueAdmin">
-                        {{ venue.admin.username }}
-                    </h4>
-                </div>
+                    </template>
+
+                    <template slot="actions" slot-scope="row">
+                        <b-button size="sm">
+                            View on map
+                        </b-button>
+                    </template>
+                </b-table>
+            </div>
+            <div class="descriptions" style="transition: all 1s;">
+                <h3 style="font-size: inherit; line-height: inherit;"> {{ description }}&nbsp
+                    <a class="showMore" style="font-size: 1rem; line-height: inherit;" v-on:click="showMoreDesc()">({{ showText }})</a>
+                </h3>
+            </div>
+            <div class="reviewsTable">
+                <b-table striped hover :items="reviewItems" :fields="reviewFields">
+                    <template slot="reviewDetails" slot-scope="row">
+                        <div style="height: 10rem; background-color: red;">
+                        </div>
+                    </template>
+                </b-table>
             </div>
         </div>
     </b-container>
@@ -65,9 +74,31 @@
             return {
                 error: "",
                 errorFlag: false,
+                detailsItem: [],
+                fields: [
+                    { key: 'category.categoryName', label: 'Category', sortable: false },
+                    { key: 'meanStarRating', label: 'Star Rating', formatter: value => {
+                            if (value == 0 || value == null || value == undefined) return '3.00';
+                            return value.toFixed(2);
+                        }, sortable: false },
+                    { key: 'modeCostRating', label: 'Cost Rating', formatter: value => {
+                            if (value == 0 || value == null) return "Free";
+                            return "$".repeat(value);
+                        }, sortable: false },
+                    { key: 'admin.username', label: 'Admin Username', sortable: false },
+                    { key: 'actions', label: ''}
+                ],
+                reviewFields: [
+                    { key: 'reviewDetails', label: 'Details', class: 'row30'},
+                    { key: 'reviewBody', label: 'Review', class: 'row70'},
+                ],
+                reviewItems: [],
+                description: "",
                 slide: 0,
                 sliding: null,
                 isBusy: true,
+                showText: 'Show more',
+                showingFull: false,
                 images: [],
                 venue: '',
                 meanStarRating: 3,
@@ -75,35 +106,61 @@
             }
         },
         mounted: function() {
+            let detail = {};
             this.meanStarRating = this.$route.params.meanStarRating;
             this.modeCostRating = this.$route.params.modeCostRating;
+            detail.meanStarRating = this.meanStarRating;
+            detail.modeCostRating = this.modeCostRating;
             if (this.meanStarRating == null || this.modeCostRating == null) {
                 this.$http.get(url + '/venues')
                     .then(function(response) {
-                        console.log('yeet');
                         for (let index in response.body) {
                             if (response.body[index].venueId == this.$route.params.venueId) {
                                 this.meanStarRating = response.body[index].meanStarRating;
                                 this.modeCostRating = response.body[index].modeCostRating;
+                                detail.meanStarRating = this.meanStarRating;
+                                detail.modeCostRating = this.modeCostRating;
                                 break;
                             }
                         }
                     });
             }
+
+            this.$http.get(url + "/venues/" + this.$route.params.venueId + "/reviews")
+                .then(function(response) {
+                    this.reviewItems = response.body
+                });
+
             this.$http.get(url + "/venues/" + this.$route.params.venueId)
                 .then(function(response) {
                     this.venue = response.body;
+                    detail.category = this.venue.category;
+                    detail.admin = this.venue.admin;
+                    this.description = this.venue.shortDescription;
                     for (let photo in this.venue.photos) {
                         let image = this.venue.photos[photo];
                         let newImage = {src: url + "/venues/" + this.$route.params.venueId + "/photos/" + image.photoFilename, desc: image.photoDescription};
                         this.images.push(newImage);
                     }
                     this.isBusy = false;
-                })
+                });
+            this.detailsItem.push(detail);
         },
         methods: {
             imageExists: function() {
                 return this.images.length != 0;
+            },
+
+            showMoreDesc: function() {
+                if (this.showingFull) {
+                    this.description = this.venue.shortDescription;
+                    this.showingFull = false;
+                    this.showText = "Show more";
+                    return;
+                }
+                this.description = this.venue.shortDescription + " " +this.venue.longDescription;
+                this.showingFull = true;
+                this.showText = "Show less";
             },
 
             getPercentage: function(rating) {
@@ -123,6 +180,20 @@
     .linkBlack:hover {
         text-decoration: none;
         color: rgb(88, 124, 160);
+    }
+
+    .link {
+        color: #fff;
+        transition: 0.1s;
+    }
+
+    .link:hover {
+        text-decoration: none;
+        color: #fff;
+    }
+
+    .venueName {
+        font-size: 3rem;
     }
 
     .info-cluster {
@@ -150,5 +221,35 @@
     .stars-inner::before {
         content: "\f005 \f005 \f005 \f005 \f005";
         color: #f8ce0b;
+    }
+
+    .titleArea {
+        display: inline-flex;
+        width: 100%;
+    }
+
+    .return {
+        line-height: 3.5rem;
+        margin-right: 0;
+        margin-left: auto;
+    }
+
+    .venueName {
+        line-height: 3.5rem;
+        margin: 0;
+    }
+
+    .descriptions {
+        line-height: 2rem;
+        font-size: 2rem;
+        display: inline-flex;
+    }
+
+    .showMore {
+    }
+
+    .showMore:hover {
+        cursor: pointer;
+        color: blue !important;
     }
 </style>
