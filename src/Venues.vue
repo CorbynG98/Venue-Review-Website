@@ -1,7 +1,10 @@
 <template>
     <div>
         <b-container fluid>
-            <div>
+            <div v-if="isBusy">
+
+            </div>
+            <div v-else>
                 <div v-bind:class="[filtersShowing ? 'showing' : 'hiding']" style="transition: display 4s ease 4s; overflow: hidden;">
                     <b-row>
                         <b-col md="6" class="my-1">
@@ -70,18 +73,31 @@
                 :current-page="currentPage"
                 :per-page="perPage"
                 :filter="filter"
+                :busy="isBusy"
                 :sort-by.sync="sortBy"
                 :sort-desc.sync="sortDesc"
                 :sort-direction="sortDirection"
                 :filter-function="filterVenues"
                 @filtered="onFiltered">
-                <template slot="name" slot-scope="row">
-                    {{ row.value.first }} {{ row.value.last }}
+                <div slot="table-busy">
+                    <div class="text-center">
+                        <b-spinner variant="primary" label="Spinning"></b-spinner>
+                    </div>
+                </div>
+                <template slot="primaryPhoto" slot-scope="row">
+                    <b-img v-bind:src="getLink(row.item.venueId, row.item.primaryPhoto)" width="200" height="150"></b-img>
                 </template>
-
+                <template slot="meanStarRating" slot-scope="row">
+                    <div class="starRating">
+                        <div class="stars-outer">
+                            <div class="stars-inner" v-bind:style="{width: getPercentage(row.item.meanStarRating)}"></div>
+                        </div>
+                    </div>
+                </template>
                 <template slot="actions" slot-scope="row">
                     <b-button size="sm">
-                        <router-link :to="{name: 'Venue', params: { venueId: row.item.venueId}}" class="link">Venue Details</router-link>
+                        <router-link :to="{name: 'Venue', params: { venueId: row.item.venueId, meanStarRating: row.item.meanStarRating, modeCostRating: row.item.modeCostRating }}"
+                                     class="link">Venue Details</router-link>
                     </b-button>
                 </template>
             </b-table>
@@ -138,6 +154,7 @@
                 filter: null,
                 citySort: null,
                 minStar: null,
+                isBusy: true,
                 maxCost: null,
                 categorySort: null,
                 filtersShowing: true,
@@ -159,7 +176,8 @@
                     }
                 });
             this.getVenues();
-            this.totalRows = this.items.length
+            this.totalRows = this.items.length;
+            this.isBusy = false;
         },
         methods: {
             getVenues: function() {
@@ -170,7 +188,7 @@
                             for(let cat in this.categories) {
                                 if (parseInt(cat) + 1 === parseInt(this.items[venue].categoryId)) {
                                     this.items[venue].categoryId = this.categories[cat];
-                                    continue;
+                                    break;
                                 }
                             }
                         }
@@ -178,6 +196,11 @@
                     }, function(error) {
                         console.log(error);
                     });
+            },
+
+            getLink: function(venueId, photoFilename) {
+                if (venueId == null || photoFilename == null) return "/src/assets/default.jpg";
+                return (url + '/venues/' + venueId + '/photos/' + photoFilename);
             },
 
             filterVenues: function(data, string) {
@@ -188,7 +211,13 @@
                 this.filtersShowing = !this.filtersShowing;
             },
 
+            getPercentage: function(rating) {
+                rating = rating==null ? 3 : rating;
+                return (((rating/5) * 100).toFixed(2)).toString() + '%';
+            },
+
             filterCities: function() {
+                this.isBusy = true;
                 let queryParams = {};
                 if (this.citySort != null) queryParams.city = this.citySort;
                 if (this.categorySort != null) {
@@ -221,6 +250,7 @@
                     }, function(err) {
                         console.log(err);
                     })
+                this.isBusy = false;
             },
 
             onFiltered(filteredItems) {
@@ -262,5 +292,28 @@
         cursor: pointer;
         text-decoration: none;
         color: rgb(88, 124, 160);
+    }
+
+    .stars-outer {
+        display: inline-block;
+        position: relative;
+        font-family: FontAwesome;
+    }
+
+    .stars-outer::before {
+        content: "\f006 \f006 \f006 \f006 \f006";
+    }
+
+    .stars-inner {
+        position: absolute;
+        top: 0;
+        left: 0;
+        white-space: nowrap;
+        overflow: hidden;
+    }
+
+    .stars-inner::before {
+        content: "\f005 \f005 \f005 \f005 \f005";
+        color: #f8ce0b;
     }
 </style>

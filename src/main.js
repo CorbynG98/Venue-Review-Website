@@ -26,47 +26,48 @@ Vue.use(BootstrapVue);
 Vue.http.emulateJSON = true;
 
 const routes = [
-  {
-    path: "/",
-    name: 'Home',
-    component: Home
-  },
-  {
-    path: "/Venues",
-    name: 'Venues',
-    component: Venues
-  },
-  {
-    path: "/Venues/:venueId",
-    name: 'Venue',
-    component: Venue
-  },
-  {
-    path: "/Users",
-    name: 'Users',
-    component: Users
-  },
-  {
-    path: "/Login",
-    name: 'Login',
-    component: Login
-  },
-  {
-    path: "/Signup",
-    name: 'Signup',
-    component: Signup
-  },
+    {
+        path: "/",
+        name: 'Home',
+        component: Home
+    },
+    {
+        path: "/Venues",
+        name: 'Venues',
+        component: Venues
+    },
+    {
+        path: "/Venues/:venueId",
+        name: 'Venue',
+        component: Venue,
+        props: true
+    },
+    {
+        path: "/Users",
+        name: 'Users',
+        component: Users
+    },
+    {
+        path: "/Login",
+        name: 'Login',
+        component: Login
+    },
+    {
+        path: "/Signup",
+        name: 'Signup',
+        component: Signup
+    },
 ];
 
 const router = new VueRouter({
-  routes: routes,
-  mode: 'history'
+    routes: routes,
+    mode: 'history'
 });
 
 
 
 new Vue({
-  el: '#app',
-  router: router,
-  render: h => h(App)
+    el: '#app',
+    router: router,
+    render: h => h(App)
 });
