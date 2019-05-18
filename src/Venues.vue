@@ -8,7 +8,7 @@
                 <div v-bind:class="[filtersShowing ? 'showing' : 'hiding']" style="transition: display 4s ease 4s; overflow: hidden;">
                     <b-row>
                         <b-col md="6" class="my-1">
-                            <b-form-group label-cols-sm="3" label="Filter" class="mb-0">
+                            <b-form-group label-cols-sm="3" label="Search Name" class="mb-0">
                                 <b-input-group>
                                     <b-form-input v-model="filter" placeholder="Type to Search"></b-form-input>
                                     <b-input-group-append>
@@ -127,9 +127,9 @@
                 categories: [],
                 fields: [
                     { key: 'primaryPhoto', label: 'Image', sortable: false },
-                    { key: 'venueName', label: 'Name', sortable: true, class: 'text-center', sortDirection: 'asc' },
-                    { key: 'categoryId.categoryName', label: 'Category', sortable: true, class: 'text-center', sortDirection: 'asc' },
-                    { key: 'city', label: 'City', sortable: true, class: 'text-center', sortDirection: 'asc' },
+                    { key: 'venueName', label: 'Name', sortable: true, class: 'text-center', sortDirection: 'desc' },
+                    { key: 'categoryId.categoryName', label: 'Category', sortable: true, class: 'text-center', sortDirection: 'desc' },
+                    { key: 'city', label: 'City', sortable: true, class: 'text-center', sortDirection: 'desc' },
                     { key: 'shortDescription', label: 'Desc', class: 'text-center', sortable: false },
                     { key: 'meanStarRating', label: 'Star Rating', sortable: true, formatter: value => {
                             if (value == 0 || value == null) return '3.00';
@@ -138,7 +138,7 @@
                     { key: 'modeCostRating', label: 'Cost Rating', sortable: true, formatter: value => {
                         if (value == 0 || value == null) return "Free";
                         return "$".repeat(value);
-                    }, class: 'text-center', sortDirection: 'asc' },
+                    }, class: 'text-center', sortDirection: 'desc' },
                     { key: 'actions', label: 'Actions', sortable: false},
                 ],
                 totalRows: 1,
@@ -150,7 +150,7 @@
                 categoryOptions: [],
                 sortBy: null,
                 sortDesc: false,
-                sortDirection: 'asc',
+                sortDirection: 'desc',
                 filter: null,
                 citySort: null,
                 minStar: null,
@@ -158,7 +158,7 @@
                 maxCost: null,
                 categorySort: null,
                 filtersShowing: true,
-                cities: ["Christchurch", "Auckland"],
+                cities: [],
                 infoModal: {
                     id: 'info-modal',
                     title: '',
@@ -181,10 +181,15 @@
         },
         methods: {
             getVenues: function() {
-                this.$http.get(url + "/venues")
+                let citySet = new Set();
+                this.sortData = {
+                    sortBy: 'STAR_RATING'
+                };
+                this.$http.get(url + "/venues", {})
                     .then(function(response) {
                         this.items = response.body;
                         for (let venue in this.items) {
+                            citySet.add(this.items[venue].city);
                             for(let cat in this.categories) {
                                 if (parseInt(cat) + 1 === parseInt(this.items[venue].categoryId)) {
                                     this.items[venue].categoryId = this.categories[cat];
@@ -192,6 +197,7 @@
                                 }
                             }
                         }
+                        this.cities = Array.from(citySet);
 
                     }, function(error) {
                         console.log(error);
@@ -249,7 +255,7 @@
                         }
                     }, function(err) {
                         console.log(err);
-                    })
+                    });
                 this.isBusy = false;
             },
 

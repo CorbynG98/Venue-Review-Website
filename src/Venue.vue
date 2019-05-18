@@ -34,7 +34,7 @@
                 </div>
             </b-carousel>
             <div class="venueInformation">
-                <b-table striped hover :items="detailsItem" :fields="fields">
+                <b-table striped hover :items="detailsItem" :fields="fields" class="no-bottom">
                     <template slot="meanStarRating" slot-scope="row">
                         <div class="starRating">
                             <div class="stars-outer">
@@ -42,18 +42,20 @@
                             </div>
                         </div>
                     </template>
-
-                    <template slot="actions" slot-scope="row">
-                        <b-button size="sm">
-                            View on map
-                        </b-button>
-                    </template>
                 </b-table>
             </div>
-            <div class="descriptions" style="transition: all 1s;">
-                <h3 style="font-size: inherit; line-height: inherit;"> {{ description }}&nbsp
-                    <a class="showMore" style="font-size: 1rem; line-height: inherit;" v-on:click="showMoreDesc()">({{ showText }})</a>
-                </h3>
+            <div clas="someMoreInformation" style="margin: 2rem 0 2rem 0;">
+                <div class="locationInformation">
+                    <p style="margin-left: 2rem; margin-right: auto;"><strong>City:</strong> {{ venue.city }}</p>
+                    <p style="margin-left: auto; margin-right: 2rem;"><strong>Address:</strong> {{ venue.address }}</p>
+                </div>
+                <div class="descriptions" style="transition: all 1s;">
+                    <h6> <strong>Description: </strong>{{ description }}&nbsp
+                        <div v-if="isLong">
+                            <a class="showMore" style="font-size: 1rem; line-height: inherit;" v-on:click="showMoreDesc()">({{ showText }})</a>
+                        </div>
+                    </h6>
+                </div>
             </div>
             <div class="reviewsTable">
                 <div class="reviewTitle"> <h2>Reviews</h2> </div>
@@ -119,6 +121,7 @@
                 slide: 0,
                 sliding: null,
                 isBusy: true,
+                isLong: false,
                 showText: 'Show more',
                 showingFull: false,
                 images: [],
@@ -158,7 +161,8 @@
                     this.venue = response.body;
                     detail.category = this.venue.category;
                     detail.admin = this.venue.admin;
-                    this.description = this.venue.shortDescription;
+                    this.description = this.isLong ? this.venue.shortDescription + "..." : this.venue.shortDescription;
+                    if (this.venue.longDescription != null && this.venue.longDescription != "") this.isLong = true;
                     for (let photo in this.venue.photos) {
                         let image = this.venue.photos[photo];
                         let newImage = {src: url + "/venues/" + this.$route.params.venueId + "/photos/" + image.photoFilename, desc: image.photoDescription};
@@ -185,12 +189,12 @@
 
             showMoreDesc: function() {
                 if (this.showingFull) {
-                    this.description = this.venue.shortDescription;
+                    this.description = this.venue.shortDescription + '...';
                     this.showingFull = false;
                     this.showText = "Show more";
                     return;
                 }
-                this.description = this.venue.shortDescription + " " +this.venue.longDescription;
+                this.description = this.venue.shortDescription + " " + this.venue.longDescription;
                 this.showingFull = true;
                 this.showText = "Show less";
             },
@@ -293,8 +297,6 @@
     }
 
     .descriptions {
-        line-height: 2rem;
-        font-size: 2rem;
         display: inline-flex;
     }
 
@@ -324,5 +326,14 @@
         margin-left: 1rem;
         margin-right: auto;
         float: left;
+    }
+
+    .no-bottom {
+        margin-bottom: 0;
+    }
+
+    .locationInformation {
+        display: inline-flex;
+        width: 100%;
     }
 </style>
