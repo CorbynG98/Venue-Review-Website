@@ -146,14 +146,20 @@
 
   .error {
     border-color: rgba(252, 47, 51, 0.8);
-    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px rgba(252, 47, 51, 0.6);
     outline: 0 none;
+  }
+
+  .error:focus {
+      box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px rgba(252, 47, 51, 0.6);
   }
 
   .valid {
     border-color: rgba(43, 255, 75, 0.8);
-    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px rgba(43, 255, 75, 0.6);
     outline: 0 none;
+  }
+
+  .valid:focus {
+      box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px rgba(43, 255, 75, 0.6);
   }
 
   .text-danger {

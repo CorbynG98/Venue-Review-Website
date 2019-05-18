@@ -61,10 +61,25 @@
                 <div v-else>
                     <div style="display: inline-flex; width: 100%;">
                         <div height="10rem" style="background-color: red; width: 30%;">
-                            yeet
+                            <div style="display: inline-flex; padding: 1rem;">
+                                <p style="font-size: 1.5rem; line-height: 2.3rem; margin-bottom: 0;">Stars:&nbsp&nbsp </p>
+                                <div class="stars">
+                                    <star-rating v-model="newReviewRatings.starRating" :increment="1" :show-rating="false" :star-size="30"></star-rating>
+                                </div>
+                            </div>
+                            <div>
+                                <div style="display: inline-flex; padding: 1rem;">
+                                    <p style="font-size: 1.5rem; line-height: 2.3rem; margin-bottom: 0;">Cost:&nbsp&nbsp </p>
+                                    <b-input-group>
+                                        <b-form-select v-model="citySort" :options="cities" v-on:change="filterCities" style="width: 150px;">
+                                            <option slot="first" :value="null">-- All --</option>
+                                        </b-form-select>
+                                    </b-input-group>
+                                </div>
+                            </div>
                         </div>
-                        <div style="background-color: blue; width: 70%;">
-                            yeet
+                        <div style="background-color: blue; width: 70%; padding: 1rem; color: red;">
+                            This will be a text area (colours just to visualize)
                         </div>
                     </div>
                 </div>
@@ -133,6 +148,10 @@
                 showingFull: false,
                 images: [],
                 venue: '',
+                newReviewRatings: {
+                    starRating: 3,
+                    costRating: 0
+                },
                 reviewOpen: false,
                 meanStarRating: 3,
                 modeCostRating: 'Free'
