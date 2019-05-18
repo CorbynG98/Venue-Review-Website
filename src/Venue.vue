@@ -55,8 +55,20 @@
             </div>
             <div class="reviewsTable">
                 <div class="reviewTitle"> <h2>Reviews</h2> </div>
-                <b-button style="margin-bottom: 2rem;" v-on:click="checkAuth()">Leave a review</b-button>
-                <b-table striped hover :items="reviewItems" :fields="reviewFields">
+                <div v-if="!reviewOpen">
+                    <b-button v-on:click="checkAuth()">Leave a review</b-button>
+                </div>
+                <div v-else>
+                    <div style="display: inline-flex; width: 100%;">
+                        <div height="10rem" style="background-color: red; width: 30%;">
+                            yeet
+                        </div>
+                        <div style="background-color: blue; width: 70%;">
+                            yeet
+                        </div>
+                    </div>
+                </div>
+                <b-table striped hover :items="reviewItems" :fields="reviewFields" style="margin-top: 2rem;">
                     <template slot="reviewDetails" slot-scope="row">
                         <div style="height: 10rem;">
                             <div class="detailsTopRow">

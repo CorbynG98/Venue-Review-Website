@@ -57,7 +57,6 @@
           this.$http.post(url + "/users/login", JSON.stringify(data))
             .then(function(response) {
               this.$cookies.set("session", response.body);
-              console.log("RE: " + this.$cookies.get('redirect'));
               if (this.$cookies.isKey('redirect')) {
                   this.$router.push(this.$cookies.get('redirect'));
                   return;
