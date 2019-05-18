@@ -19,6 +19,7 @@
                 background="#ababab"
                 img-width="1024"
                 img-height="480"
+                :contain="true"
                 style="text-shadow: 1px 1px 2px; height: 480px;">
                 <div v-if="imageExists()">
                     <div v-for="image in images">
@@ -98,7 +99,12 @@
                         </template>
                     </b-modal>
                 </div>
-                <b-table striped hover :items="reviewItems" :fields="reviewFields" style="margin-top: 2rem;">
+                <b-table striped hover :items="reviewItems" :fields="reviewFields" :busy="reviewBusy" style="margin-top: 2rem;">
+                    <div slot="table-busy">
+                        <div class="text-center">
+                            <b-spinner variant="primary" label="Spinning"></b-spinner>
+                        </div>
+                    </div>
                     <template slot="reviewDetails" slot-scope="row">
                         <div style="height: 10rem;">
                             <div class="detailsTopRow">
@@ -155,16 +161,17 @@
                 ],
                 reviewItems: [],
                 costOptions: [
-                    {value: 0, text: 'Free'},
-                    {value: 1, text: '$'},
-                    {value: 2, text: '$$'},
-                    {value: 3, text: '$$$'},
-                    {value: 4, text: '$$$$'}
+                    { value: 0, text: 'Free' },
+                    { value: 1, text: '$' },
+                    { value: 2, text: '$$' },
+                    { value: 3, text: '$$$' },
+                    { value: 4, text: '$$$$' }
                 ],
                 description: "",
                 slide: 0,
                 sliding: null,
                 isBusy: true,
+                reviewBusy: true,
                 isLong: false,
                 showText: 'Show more',
                 showingFull: false,
@@ -175,7 +182,6 @@
                     costRating: 0,
                     reviewBody: ''
                 },
-                reviewOpen: false,
                 meanStarRating: 3,
                 modeCostRating: 'Free',
                 notAdmin: true,
@@ -213,7 +219,8 @@
 
             this.$http.get(url + "/venues/" + this.$route.params.venueId + "/reviews")
                 .then(function(response) {
-                    this.reviewItems = response.body
+                    this.reviewItems = response.body;
+                    this.reviewBusy = false;
                 });
 
             this.$http.get(url + "/venues/" + this.$route.params.venueId)
@@ -257,6 +264,7 @@
             },
 
             validateReview: function() {
+                this.reviewBusy = true;
                 let review = this.newReview;
                 if (review.starRating < 0 || review.starRating > 5) {
                     this.modalError = "Please select a valid star rating";
@@ -285,7 +293,12 @@
 
                 this.$http.post(url + "/venues/" + this.$route.params.venueId + "/reviews", this.newReview, { headers })
                     .then(function(response) {
-                        console.log(response);
+                        this.$root.$emit('bv::hide::modal', 'newReviewModal');
+                        this.$http.get(url + "/venues/" + this.$route.params.venueId + "/reviews")
+                            .then(function(response) {
+                                this.reviewItems = response.body
+                                this.reviewBusy = false;
+                            });
                     }, function(err) {
                         if (err.status == 403) {
                             this.modalError = "You can only post one review per venue.";

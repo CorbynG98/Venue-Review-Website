@@ -145,6 +145,7 @@
         max-height: 480px;
         background-position: 50% 50%;
         background-size: contain;
+        object-fit: contain;
     }
 
     .row30 {
