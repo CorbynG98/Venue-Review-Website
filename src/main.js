@@ -26,6 +26,9 @@ Vue.use(BootstrapVue);
 import StarRating from 'vue-star-rating';
 Vue.component('star-rating', StarRating);
 
+import VueGallery from 'vue-gallery';
+Vue.component('gallery', VueGallery);
+
 Vue.http.emulateJSON = true;
 
 const routes = [

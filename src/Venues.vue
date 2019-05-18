@@ -60,7 +60,7 @@
             </div>
             <div style="width: 100%; margin-top: 1rem;">
                 <div>
-                    <b-button v-on:click="showModal()" ref="btnShow" style="float: left; margin-bottom: 1rem;">New Venue</b-button>
+                    <b-button size="lg" variant="primary" v-on:click="showModal()" ref="btnShow" style="float: left; margin-bottom: 1rem;">New Venue</b-button>
 
                     <b-modal
                         id="newVenueModal"
@@ -68,7 +68,31 @@
                         title="New Venue"
                         centered>
                         <form ref="form">
+                            <template>
+                                <div>
+                                    <gallery :images="photoQueue" :index="null" style="overflow-x: scroll;"></gallery>
+                                    <div
+                                        class="image"
+                                        v-for="(image, imageIndex) in photoQueue"
+                                        :key="imageIndex"
+                                        :style="{ backgroundImage: 'url(' + image + ')', width: '300px', height: '200px' }">
 
+                                    </div>
+                                </div>
+                            </template>
+                            <template>
+                                <div>
+                                    <b-form-file
+                                        v-model="venuePhotos"
+                                        :state="Boolean(venuePhotos)"
+                                        :multiple="true"
+                                        placeholder="Choose a file..."
+                                        drop-placeholder="Drop file here..."
+                                        @change="onFileChange"
+                                        accept=".jpg, .png, image/jpeg, image/png"
+                                    ></b-form-file>
+                                </div>
+                            </template>
                         </form>
                     </b-modal>
                 </div>
@@ -115,8 +139,7 @@
                         v-model="currentPage"
                         :total-rows="totalRows"
                         :per-page="perPage"
-                        class="my-0"
-                    >
+                        class="my-0">
                         <div slot="page">
                             {{ getPageRange() }}
                         </div>
@@ -137,33 +160,45 @@
                 items: [],
                 categories: [],
                 fields: [
-                    { key: 'primaryPhoto', label: 'Image', sortable: false },
-                    { key: 'venueName', label: 'Name', sortable: true, class: 'text-center', sortDirection: 'desc' },
-                    { key: 'categoryId.categoryName', label: 'Category', sortable: true, class: 'text-center', sortDirection: 'desc' },
-                    { key: 'city', label: 'City', sortable: true, class: 'text-center', sortDirection: 'desc' },
-                    { key: 'shortDescription', label: 'Desc', class: 'text-center', sortable: false },
-                    { key: 'meanStarRating', label: 'Star Rating', sortable: true, formatter: value => {
+                    {key: 'primaryPhoto', label: 'Image', sortable: false},
+                    {key: 'venueName', label: 'Name', sortable: true, class: 'text-center', sortDirection: 'desc'},
+                    {
+                        key: 'categoryId.categoryName',
+                        label: 'Category',
+                        sortable: true,
+                        class: 'text-center',
+                        sortDirection: 'desc'
+                    },
+                    {key: 'city', label: 'City', sortable: true, class: 'text-center', sortDirection: 'desc'},
+                    {key: 'shortDescription', label: 'Desc', class: 'text-center', sortable: false},
+                    {
+                        key: 'meanStarRating', label: 'Star Rating', sortable: true, formatter: value => {
                             console.log("test: " + value);
                             if (value == 0 || value == null || value == undefined) return parseInt('3').toFixed(2);
                             return value.toFixed(2);
-                        }, class: 'text-center', sortDirection: 'asc' },
-                    { key: 'modeCostRating', label: 'Cost Rating', sortable: true, formatter: value => {
+                        }, class: 'text-center', sortDirection: 'asc'
+                    },
+                    {
+                        key: 'modeCostRating', label: 'Cost Rating', sortable: true, formatter: value => {
                             if (value == 0 || value == null) return "Free";
                             return "$".repeat(value);
-                        }, class: 'text-center', sortDirection: 'desc' },
-                    { key: 'actions', label: 'Actions', sortable: false},
+                        }, class: 'text-center', sortDirection: 'desc'
+                    },
+                    {key: 'actions', label: 'Actions', sortable: false},
                 ],
                 totalRows: 1,
                 currentPage: 1,
                 perPage: 10,
+                venuePhotos: [],
                 pageOptions: [10, 15, 20],
                 starOptions: [1, 2, 3, 4, 5],
+                photoQueue: [],
                 costOptions: [
-                    { value: 0, text: 'Free' },
-                    { value: 1, text: '$' },
-                    { value: 2, text: '$$' },
-                    { value: 3, text: '$$$' },
-                    { value: 4, text: '$$$$' }
+                    {value: 0, text: 'Free'},
+                    {value: 1, text: '$'},
+                    {value: 2, text: '$$'},
+                    {value: 3, text: '$$$'},
+                    {value: 4, text: '$$$$'}
                 ],
                 categoryOptions: [],
                 sortBy: null,
@@ -184,17 +219,12 @@
                 }
             }
         },
-        computed: {
-            rows() {
-                return this.items.length
-            }
-        },
-        mounted: function() {
+        mounted: function () {
             this.$cookies.set('redirect', this.$router.currentRoute.fullPath);
             this.$http.get(url + "/categories")
-                .then(function(response) {
+                .then(function (response) {
                     this.categories = response.body;
-                    for(let cat in this.categories) {
+                    for (let cat in this.categories) {
                         let name = this.categories[cat].categoryName;
                         this.categoryOptions.push(name);
                     }
@@ -203,20 +233,23 @@
             this.getVenues();
             this.totalRows = this.items.length;
         },
+        updated: function () {
+            this.totalRows = this.items.length;
+        },
         methods: {
-            getVenues: function() {
+            getVenues: function () {
                 let citySet = new Set();
                 let sortData = {
                     sortBy: 'STAR_RATING'
                 };
                 this.isBusy = true;
-                this.$http.get(url + "/venues", { params: sortData })
-                    .then(function(response) {
+                this.$http.get(url + "/venues", {params: sortData})
+                    .then(function (response) {
                         this.items = response.body;
                         for (let venue in this.items) {
                             citySet.add(this.items[venue].city);
                             if (this.items[venue].meanStarRating == 0 || this.items[venue].meanStarRating == null) this.items[venue].meanStarRating = 3;
-                            for(let cat in this.categories) {
+                            for (let cat in this.categories) {
                                 if (parseInt(cat) + 1 === parseInt(this.items[venue].categoryId)) {
                                     this.items[venue].categoryId = this.categories[cat];
                                     break;
@@ -225,38 +258,63 @@
                         }
                         this.cities = Array.from(citySet);
                         this.isBusy = false;
-                    }, function(error) {
+                    }, function (error) {
                         this.isBusy = false;
                         console.log(error);
                     });
             },
 
-            getLink: function(venueId, photoFilename) {
+            getLink: function (venueId, photoFilename) {
                 if (venueId == null || photoFilename == null) return "/src/assets/default.jpg";
                 return (url + '/venues/' + venueId + '/photos/' + photoFilename);
             },
 
-            filterVenues: function(data, string) {
+            onFileChange: function(e) {
+                // for (let image in this.venuePhotos) {
+                //     let files = image.target.files || image.dataTransfer.files;
+                //     if (!files.length)
+                //         return;
+                //     this.createImage(files[0]);
+                // }
+                let files = e.target.files || e.dataTransfer.files;
+                if (!files.length)
+                    return;
+                for(let image in files)
+                    this.createImage(files[image]);
+            },
+
+            createImage: function(file) {
+                let image = new Image();
+                let reader = new FileReader();
+                let vm = this;
+
+                reader.onload = (e) => {
+                    vm.photoQueue.push(e.target.result);
+                };
+                reader.readAsDataURL(file);
+            },
+
+            filterVenues: function (data, string) {
                 return data.venueName.includes(string);
             },
 
-            toggleFilters: function() {
+            toggleFilters: function () {
                 this.filtersShowing = !this.filtersShowing;
             },
 
-            showModal: function() {
+            showModal: function () {
                 if (!this.$cookies.isKey('session')) return this.$router.push("/Login");
                 this.$root.$emit('bv::show::modal', 'newVenueModal')
             },
 
-            getPageRange: function() {
+            getPageRange: function () {
                 let current = parseInt(this.currentPage);
                 let end = current + 9;
 
                 return (current + ' - ' + end);
             },
 
-            filterCities: function() {
+            filterCities: function () {
                 this.isBusy = true;
                 let queryParams = {};
                 if (this.citySort != null) queryParams.city = this.citySort;
@@ -273,11 +331,11 @@
                 }
                 if (queryParams === {}) return this.getVenues();
                 this.$http.get(url + "/venues", {params: queryParams})
-                    .then(function(response) {
+                    .then(function (response) {
                         this.items = response.body;
                         for (let venue in this.items) {
                             if (this.items[venue].meanStarRating == 0 || this.items[venue].meanStarRating == null) this.items[venue].meanStarRating = 3;
-                            for(let cat in this.categories) {
+                            for (let cat in this.categories) {
                                 if (parseInt(cat) + 1 === parseInt(this.items[venue].categoryId)) {
                                     this.items[venue].categoryId = this.categories[cat];
                                     continue;
@@ -285,7 +343,7 @@
                             }
                         }
                         this.isBusy = false;
-                    }, function(err) {
+                    }, function (err) {
                         this.isBusy = false;
                         console.log(err);
                     });
@@ -322,5 +380,14 @@
         cursor: pointer;
         text-decoration: none;
         color: rgb(88, 124, 160);
+    }
+
+    .image {
+        float: left;
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: center center;
+        border: 1px solid #ebebeb;
+        margin: 5px;
     }
 </style>
