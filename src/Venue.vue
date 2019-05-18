@@ -300,6 +300,7 @@
                                 this.reviewBusy = false;
                             });
                     }, function(err) {
+                        this.reviewBusy = false;
                         if (err.status == 403) {
                             this.modalError = "You can only post one review per venue.";
                             this.modalHasError = true;
