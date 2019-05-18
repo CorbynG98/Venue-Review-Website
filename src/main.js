@@ -23,6 +23,9 @@ Vue.use(VueCookies);
 import BootstrapVue from 'bootstrap-vue';
 Vue.use(BootstrapVue);
 
+import StarRating from 'vue-star-rating';
+Vue.component('star-rating', StarRating);
+
 Vue.http.emulateJSON = true;
 
 const routes = [

@@ -1,24 +1,24 @@
 <template>
-  <div>
-    Home Page
-  </div>
+    <div>
+        Home Page
+    </div>
 </template>
 
 
 <script>
     export default {
         data() {
-          return {
-            error: "",
-            errorFlag: false
-          }
+            return {
+                error: "",
+                errorFlag: false
+            }
         },
-      mounted: function() {
+        mounted: function() {
+            this.$cookies.set('redirect', this.$router.currentRoute.fullPath);
+        },
+        methods: {
 
-      },
-      methods: {
-
-      }
+        }
     }
 </script>
 

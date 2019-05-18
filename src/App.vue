@@ -157,4 +157,8 @@
         max-width: 45rem;
         min-width: 45rem;
     }
+
+    .vue-star-rating {
+        margin: auto;
+    }
 </style>

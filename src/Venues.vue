@@ -88,11 +88,7 @@
                     <b-img v-bind:src="getLink(row.item.venueId, row.item.primaryPhoto)" width="200" height="150"></b-img>
                 </template>
                 <template slot="meanStarRating" slot-scope="row">
-                    <div class="starRating">
-                        <div class="stars-outer">
-                            <div class="stars-inner" v-bind:style="{width: getPercentage(row.item.meanStarRating)}"></div>
-                        </div>
-                    </div>
+                    <star-rating :rating="row.item.meanStarRating" :increment="0.1" :read-only="true" :show-rating="false" :star-size="20"></star-rating>
                 </template>
                 <template slot="actions" slot-scope="row">
                     <b-button size="sm">
@@ -167,6 +163,7 @@
             }
         },
         mounted: function() {
+            this.$cookies.set('redirect', this.$router.currentRoute.fullPath);
             this.$http.get(url + "/categories")
                 .then(function(response) {
                     this.categories = response.body;
@@ -182,14 +179,15 @@
         methods: {
             getVenues: function() {
                 let citySet = new Set();
-                this.sortData = {
+                let sortData = {
                     sortBy: 'STAR_RATING'
                 };
-                this.$http.get(url + "/venues", {})
+                this.$http.get(url + "/venues", { params: sortData })
                     .then(function(response) {
                         this.items = response.body;
                         for (let venue in this.items) {
                             citySet.add(this.items[venue].city);
+                            if (this.items[venue].meanStarRating == 0 || this.items[venue].meanStarRating == null) this.items[venue].meanStarRating = 3;
                             for(let cat in this.categories) {
                                 if (parseInt(cat) + 1 === parseInt(this.items[venue].categoryId)) {
                                     this.items[venue].categoryId = this.categories[cat];

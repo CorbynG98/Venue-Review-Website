@@ -36,11 +36,7 @@
             <div class="venueInformation">
                 <b-table striped hover :items="detailsItem" :fields="fields" class="no-bottom">
                     <template slot="meanStarRating" slot-scope="row">
-                        <div class="starRating">
-                            <div class="stars-outer">
-                                <div class="stars-inner" v-bind:style="{width: getPercentage(row.item.meanStarRating)}"></div>
-                            </div>
-                        </div>
+                        <star-rating :rating="row.item.meanStarRating" :increment="0.1" :read-only="true" :show-rating="false" :star-size="20"></star-rating>
                     </template>
                 </b-table>
             </div>
@@ -59,12 +55,13 @@
             </div>
             <div class="reviewsTable">
                 <div class="reviewTitle"> <h2>Reviews</h2> </div>
+                <b-button style="margin-bottom: 2rem;" v-on:click="checkAuth()">Leave a review</b-button>
                 <b-table striped hover :items="reviewItems" :fields="reviewFields">
                     <template slot="reviewDetails" slot-scope="row">
                         <div style="height: 10rem;">
                             <div class="detailsTopRow">
                                 <div class="profileImage">
-                                    <b-img v-bind:src="getProfileImgLink(row.item.reviewAuthor.userId)" width="100" height="100"></b-img>
+                                    <b-img v-bind:src="getProfileImgLink(row.item.reviewAuthor.userId)" onerror="this.onerror=null; this.src='/src/assets/default-profile.png'" width="100" height="100"></b-img>
                                 </div>
                                 <div class="UsernameAndPosted">
                                     <h2>{{ row.item.reviewAuthor.username }}</h2>
@@ -74,9 +71,7 @@
                             <div class="starAndCostRating" style="display: inline-flex; width: 100%;">
                                 <div class="starRating" style="display: inline-flex; line-height: 4rem;">
                                     Stars:&nbsp
-                                    <div class="stars-outer">
-                                        <div class="stars-inner" v-bind:style="{width: getPercentage(row.item.starRating)}"></div>
-                                    </div>
+                                    <star-rating :rating="row.item.starRating" :increment="0.1" :read-only="true" :show-rating="false" :star-size="20"></star-rating>
                                 </div>
                                 <div class="costRating" style="display: inline-flex; line-height: 4rem;">
                                     Cost Rating:&nbsp{{ getDollars(row.item.costRating) }}
@@ -126,11 +121,13 @@
                 showingFull: false,
                 images: [],
                 venue: '',
+                reviewOpen: false,
                 meanStarRating: 3,
                 modeCostRating: 'Free'
             }
         },
         mounted: function() {
+            this.$cookies.set('redirect', this.$router.currentRoute.fullPath);
             let detail = {};
             this.meanStarRating = this.$route.params.meanStarRating;
             this.modeCostRating = this.$route.params.modeCostRating;
@@ -178,7 +175,7 @@
             },
 
             getProfileImgLink: function(userId) {
-                return '/src/assets/default-profile.png';
+                // return '/src/assets/default-profile.png';
                 return url + '/users/' + userId + '/photo';
             },
 
@@ -220,9 +217,13 @@
                 return n<10 ? '0'+n : n;
             },
 
-            getPercentage: function(rating) {
-                rating = rating==null ? 3 : rating;
-                return (((rating/5) * 100).toFixed(2)).toString() + '%';
+            checkAuth: function() {
+                if (this.$cookies.isKey('session')) {
+                    this.reviewOpen = true;
+                    return;
+                }
+                this.reviewOpen = false;
+                this.$router.push('/Login');
             }
         }
     }

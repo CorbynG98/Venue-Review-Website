@@ -6,7 +6,14 @@
 
 <script>
     export default {
-        name: "Users"
+        data() {
+            return {
+
+            }
+        },
+        mounted: function() {
+            this.$cookies.set('redirect', this.$router.currentRoute.fullPath);
+        }
     }
 </script>
 
