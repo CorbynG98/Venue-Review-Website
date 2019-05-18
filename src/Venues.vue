@@ -1,71 +1,82 @@
 <template>
     <div>
         <b-container fluid>
-            <div v-if="isBusy">
+            <div v-bind:class="[filtersShowing ? 'showing' : 'hiding']" style="transition: display 4s ease 4s; overflow: hidden;">
+                <b-row>
+                    <b-col md="6" class="my-1">
+                        <b-form-group label-cols-sm="3" label="Search Name" class="mb-0">
+                            <b-input-group>
+                                <b-form-input v-model="filter" placeholder="Type to Search"></b-form-input>
+                                <b-input-group-append>
+                                    <b-button :disabled="!filter" @click="filter = ''">Clear</b-button>
+                                </b-input-group-append>
+                            </b-input-group>
+                        </b-form-group>
+                    </b-col>
 
+                    <b-col md="6" class="my-1">
+                        <b-form-group label-cols-sm="3" label="Select City" class="mb-0">
+                            <b-input-group>
+                                <b-form-select v-model="citySort" :options="cities" v-on:change="filterCities">
+                                    <option slot="first" :value="null">-- All --</option>
+                                </b-form-select>
+                            </b-input-group>
+                        </b-form-group>
+                    </b-col>
+
+                    <b-col md="6" class="my-1">
+                        <b-form-group label-cols-sm="3" label="Category" class="mb-0">
+                            <b-form-select v-model="categorySort" :options="categoryOptions" v-on:change="filterCities">
+                                <option slot="first" :value="null">-- All --</option>
+                            </b-form-select>
+                        </b-form-group>
+                    </b-col>
+
+                    <b-col md="6" class="my-1">
+                        <b-form-group label-cols-sm="3" label="Per page" class="mb-0">
+                            <b-form-select v-model="perPage" :options="pageOptions"></b-form-select>
+                        </b-form-group>
+                    </b-col>
+
+                    <b-col md="6" class="my-1">
+                        <b-form-group label-cols-sm="3" label="Min Star Rating" class="mb-0">
+                            <b-form-select v-model="minStar" label="test" :options="starOptions" v-on:change="filterCities">
+                                <option slot="first" :value="null">-- All --</option>
+                            </b-form-select>
+                        </b-form-group>
+                    </b-col>
+
+                    <b-col md="6" class="my-1">
+                        <b-form-group label-cols-sm="3" label="Max Cost Rating" class="mb-0">
+                            <b-form-select v-model="maxCost" label="test" :options="costOptions" v-on:change="filterCities">
+                                <option slot="first" :value="null">-- All --</option>
+                            </b-form-select>
+                        </b-form-group>
+                    </b-col>
+                </b-row>
             </div>
-            <div v-else>
-                <div v-bind:class="[filtersShowing ? 'showing' : 'hiding']" style="transition: display 4s ease 4s; overflow: hidden;">
-                    <b-row>
-                        <b-col md="6" class="my-1">
-                            <b-form-group label-cols-sm="3" label="Search Name" class="mb-0">
-                                <b-input-group>
-                                    <b-form-input v-model="filter" placeholder="Type to Search"></b-form-input>
-                                    <b-input-group-append>
-                                        <b-button :disabled="!filter" @click="filter = ''">Clear</b-button>
-                                    </b-input-group-append>
-                                </b-input-group>
-                            </b-form-group>
-                        </b-col>
+            <div class="showFilters">
+                <a v-on:click="toggleFilters()" class="linkBlack" style="float: left; margin-left: 4.5rem; font-size: 1.5rem; color: blue; display: none;">Show filters</a>
+            </div>
+            <div style="width: 100%; margin-top: 1rem;">
+                <div>
+                    <b-button v-on:click="showModal()" ref="btnShow" style="float: left; margin-bottom: 1rem;">New Venue</b-button>
 
-                        <b-col md="6" class="my-1">
-                            <b-form-group label-cols-sm="3" label="Select City" class="mb-0">
-                                <b-input-group>
-                                    <b-form-select v-model="citySort" :options="cities" v-on:change="filterCities">
-                                        <option slot="first" :value="null">-- All --</option>
-                                    </b-form-select>
-                                </b-input-group>
-                            </b-form-group>
-                        </b-col>
+                    <b-modal
+                        id="newVenueModal"
+                        size="xl"
+                        title="New Venue"
+                        centered>
+                        <form ref="form">
 
-                        <b-col md="6" class="my-1">
-                            <b-form-group label-cols-sm="3" label="Category" class="mb-0">
-                                <b-form-select v-model="categorySort" :options="categoryOptions" v-on:change="filterCities">
-                                    <option slot="first" :value="null">-- All --</option>
-                                </b-form-select>
-                            </b-form-group>
-                        </b-col>
-
-                        <b-col md="6" class="my-1">
-                            <b-form-group label-cols-sm="3" label="Per page" class="mb-0">
-                                <b-form-select v-model="perPage" :options="pageOptions"></b-form-select>
-                            </b-form-group>
-                        </b-col>
-
-                        <b-col md="6" class="my-1">
-                            <b-form-group label-cols-sm="3" label="Min Star Rating" class="mb-0">
-                                <b-form-select v-model="minStar" label="test" :options="starOptions" v-on:change="filterCities">
-                                    <option slot="first" :value="null">-- All --</option>
-                                </b-form-select>
-                            </b-form-group>
-                        </b-col>
-
-                        <b-col md="6" class="my-1">
-                            <b-form-group label-cols-sm="3" label="Max Cost Rating" class="mb-0">
-                                <b-form-select v-model="maxCost" label="test" :options="costOptions" v-on:change="filterCities">
-                                    <option slot="first" :value="null">-- All --</option>
-                                </b-form-select>
-                            </b-form-group>
-                        </b-col>
-                    </b-row>
-                </div>
-                <div class="showFilters">
-                    <a v-on:click="toggleFilters()" class="linkBlack" style="float: left; margin-left: 4.5rem; font-size: 1.5rem; color: blue; display: none;">Show filters</a>
+                        </form>
+                    </b-modal>
                 </div>
             </div>
 
 
             <b-table
+                style="margin-top: 2rem;"
                 show-empty
                 stacked="md"
                 :items="items"
@@ -105,7 +116,11 @@
                         :total-rows="totalRows"
                         :per-page="perPage"
                         class="my-0"
-                    ></b-pagination>
+                    >
+                        <div slot="page">
+                            {{ getPageRange() }}
+                        </div>
+                    </b-pagination>
                 </b-col>
             </b-row>
         </b-container>
@@ -128,13 +143,14 @@
                     { key: 'city', label: 'City', sortable: true, class: 'text-center', sortDirection: 'desc' },
                     { key: 'shortDescription', label: 'Desc', class: 'text-center', sortable: false },
                     { key: 'meanStarRating', label: 'Star Rating', sortable: true, formatter: value => {
-                            if (value == 0 || value == null) return '3.00';
+                            console.log("test: " + value);
+                            if (value == 0 || value == null || value == undefined) return parseInt('3').toFixed(2);
                             return value.toFixed(2);
                         }, class: 'text-center', sortDirection: 'asc' },
                     { key: 'modeCostRating', label: 'Cost Rating', sortable: true, formatter: value => {
-                        if (value == 0 || value == null) return "Free";
-                        return "$".repeat(value);
-                    }, class: 'text-center', sortDirection: 'desc' },
+                            if (value == 0 || value == null) return "Free";
+                            return "$".repeat(value);
+                        }, class: 'text-center', sortDirection: 'desc' },
                     { key: 'actions', label: 'Actions', sortable: false},
                 ],
                 totalRows: 1,
@@ -142,7 +158,13 @@
                 perPage: 10,
                 pageOptions: [10, 15, 20],
                 starOptions: [1, 2, 3, 4, 5],
-                costOptions: ['Free', '$', '$$', '$$$', '$$$$'],
+                costOptions: [
+                    { value: 0, text: 'Free' },
+                    { value: 1, text: '$' },
+                    { value: 2, text: '$$' },
+                    { value: 3, text: '$$$' },
+                    { value: 4, text: '$$$$' }
+                ],
                 categoryOptions: [],
                 sortBy: null,
                 sortDesc: false,
@@ -162,6 +184,11 @@
                 }
             }
         },
+        computed: {
+            rows() {
+                return this.items.length
+            }
+        },
         mounted: function() {
             this.$cookies.set('redirect', this.$router.currentRoute.fullPath);
             this.$http.get(url + "/categories")
@@ -171,10 +198,10 @@
                         let name = this.categories[cat].categoryName;
                         this.categoryOptions.push(name);
                     }
+                    this.isBusy = false;
                 });
             this.getVenues();
             this.totalRows = this.items.length;
-            this.isBusy = false;
         },
         methods: {
             getVenues: function() {
@@ -182,6 +209,7 @@
                 let sortData = {
                     sortBy: 'STAR_RATING'
                 };
+                this.isBusy = true;
                 this.$http.get(url + "/venues", { params: sortData })
                     .then(function(response) {
                         this.items = response.body;
@@ -196,8 +224,9 @@
                             }
                         }
                         this.cities = Array.from(citySet);
-
+                        this.isBusy = false;
                     }, function(error) {
+                        this.isBusy = false;
                         console.log(error);
                     });
             },
@@ -215,9 +244,16 @@
                 this.filtersShowing = !this.filtersShowing;
             },
 
-            getPercentage: function(rating) {
-                rating = rating==null ? 3 : rating;
-                return (((rating/5) * 100).toFixed(2)).toString() + '%';
+            showModal: function() {
+                if (!this.$cookies.isKey('session')) return this.$router.push("/Login");
+                this.$root.$emit('bv::show::modal', 'newVenueModal')
+            },
+
+            getPageRange: function() {
+                let current = parseInt(this.currentPage);
+                let end = current + 9;
+
+                return (current + ' - ' + end);
             },
 
             filterCities: function() {
@@ -233,17 +269,14 @@
                     queryParams.minStarRating = this.minStar;
                 }
                 if (this.maxCost != null) {
-                    if (this.maxCost === 'Free') queryParams.maxCostRating = 0;
-                    if (this.maxCost === '$') queryParams.maxCostRating = 1;
-                    if (this.maxCost === '$$') queryParams.maxCostRating = 2;
-                    if (this.maxCost === '$$$') queryParams.maxCostRating = 3;
-                    if (this.maxCost === '$$$$') queryParams.maxCostRating = 4;
+                    queryParams.maxCostRating = this.maxCost;
                 }
                 if (queryParams === {}) return this.getVenues();
                 this.$http.get(url + "/venues", {params: queryParams})
                     .then(function(response) {
                         this.items = response.body;
                         for (let venue in this.items) {
+                            if (this.items[venue].meanStarRating == 0 || this.items[venue].meanStarRating == null) this.items[venue].meanStarRating = 3;
                             for(let cat in this.categories) {
                                 if (parseInt(cat) + 1 === parseInt(this.items[venue].categoryId)) {
                                     this.items[venue].categoryId = this.categories[cat];
@@ -251,10 +284,11 @@
                                 }
                             }
                         }
+                        this.isBusy = false;
                     }, function(err) {
+                        this.isBusy = false;
                         console.log(err);
                     });
-                this.isBusy = false;
             },
 
             onFiltered(filteredItems) {
@@ -279,14 +313,6 @@
         color: #fff;
     }
 
-    .hiding {
-        height: 0;
-    }
-
-    .showing {
-        height: auto;
-    }
-
     .linkBlack {
         color: rgb(44, 62, 80);
         transition: 0.1s;
@@ -296,28 +322,5 @@
         cursor: pointer;
         text-decoration: none;
         color: rgb(88, 124, 160);
-    }
-
-    .stars-outer {
-        display: inline-block;
-        position: relative;
-        font-family: FontAwesome;
-    }
-
-    .stars-outer::before {
-        content: "\f006 \f006 \f006 \f006 \f006";
-    }
-
-    .stars-inner {
-        position: absolute;
-        top: 0;
-        left: 0;
-        white-space: nowrap;
-        overflow: hidden;
-    }
-
-    .stars-inner::before {
-        content: "\f005 \f005 \f005 \f005 \f005";
-        color: #f8ce0b;
     }
 </style>

@@ -57,7 +57,7 @@
             <div class="reviewsTable">
                 <div class="reviewTitle"> <h2>Reviews</h2> </div>
                 <div v-if="notAdmin">
-                    <b-button v-on:click="showModal()" ref="btnShow">Modal Version</b-button>
+                    <b-button v-on:click="showModal()" ref="btnShow">Write a review</b-button>
 
                     <b-modal
                         id="newReviewModal"
@@ -249,7 +249,6 @@
             },
 
             getProfileImgLink: function(userId) {
-                // return '/src/assets/default-profile.png';
                 return url + '/users/' + userId + '/photo';
             },
 
@@ -310,8 +309,6 @@
                         this.modalHasError = true;
                         return;
                     });
-
-                // this.$root.$emit('bv::hide::modal', 'newReviewModal');
             },
 
             showMoreDesc: function() {
