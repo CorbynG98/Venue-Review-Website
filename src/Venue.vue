@@ -55,33 +55,48 @@
             </div>
             <div class="reviewsTable">
                 <div class="reviewTitle"> <h2>Reviews</h2> </div>
-                <div v-if="!reviewOpen">
-                    <b-button v-on:click="checkAuth()">Leave a review</b-button>
-                </div>
-                <div v-else>
-                    <div style="display: inline-flex; width: 100%;">
-                        <div height="10rem" style="background-color: red; width: 30%;">
-                            <div style="display: inline-flex; padding: 1rem;">
-                                <p style="font-size: 1.5rem; line-height: 2.3rem; margin-bottom: 0;">Stars:&nbsp&nbsp </p>
-                                <div class="stars">
-                                    <star-rating v-model="newReviewRatings.starRating" :increment="1" :show-rating="false" :star-size="30"></star-rating>
-                                </div>
-                            </div>
-                            <div>
-                                <div style="display: inline-flex; padding: 1rem;">
-                                    <p style="font-size: 1.5rem; line-height: 2.3rem; margin-bottom: 0;">Cost:&nbsp&nbsp </p>
-                                    <b-input-group>
-                                        <b-form-select v-model="citySort" :options="cities" v-on:change="filterCities" style="width: 150px;">
-                                            <option slot="first" :value="null">-- All --</option>
+                <div v-if="notAdmin">
+                    <b-button v-on:click="showModal()" ref="btnShow">Modal Version</b-button>
+
+                    <b-modal
+                        id="newReviewModal"
+                        size="lg"
+                        title="New Review"
+                        centered>
+                        <form ref="form">
+                            <b-form-group>
+                                <div style="display: inline-flex; width: 100%;">
+                                    <div style="display: inline-flex; padding: 1rem; margin-left: 2rem; margin-right: auto;" class="starRating">
+                                        <p style="font-size: 1.5rem; line-height: 2.3rem; margin-bottom: 0;">Stars:&nbsp&nbsp </p>
+                                        <div class="stars">
+                                            <star-rating v-model="newReview.starRating" :increment="1" :show-rating="false" :star-size="30"></star-rating>
+                                        </div>
+                                    </div>
+                                    <div style="display: inline-flex; padding: 1rem; margin-left: auto; margin-right: 2rem;">
+                                        <p style="font-size: 1.5rem; line-height: 2.3rem; margin-bottom: 0;">Cost:&nbsp&nbsp </p>
+                                        <b-form-select v-model="newReview.costRating" :options="costOptions" v-on:change="" style="width: 150px;">
                                         </b-form-select>
-                                    </b-input-group>
+                                    </div>
                                 </div>
+                            </b-form-group>
+                            <b-form-textarea
+                                id="textarea"
+                                v-model="newReview.reviewBody"
+                                placeholder="Review content..."
+                                rows="3"
+                                max-rows="6"
+                                v-bind:class="[validBody ? 'valid' : 'error']"
+                            ></b-form-textarea>
+                        </form>
+                        <template slot="modal-footer">
+                            <div v-if="modalHasError" class="text-danger">
+                                {{ modalError }}
                             </div>
-                        </div>
-                        <div style="background-color: blue; width: 70%; padding: 1rem; color: red;">
-                            This will be a text area (colours just to visualize)
-                        </div>
-                    </div>
+                            <b-button primary size="lg" variant="success" v-on:click="validateReview()">
+                                Submit
+                            </b-button>
+                        </template>
+                    </b-modal>
                 </div>
                 <b-table striped hover :items="reviewItems" :fields="reviewFields" style="margin-top: 2rem;">
                     <template slot="reviewDetails" slot-scope="row">
@@ -139,6 +154,13 @@
                     { key: 'reviewBody', label: 'Review', class: 'row70'},
                 ],
                 reviewItems: [],
+                costOptions: [
+                    {value: 0, text: 'Free'},
+                    {value: 1, text: '$'},
+                    {value: 2, text: '$$'},
+                    {value: 3, text: '$$$'},
+                    {value: 4, text: '$$$$'}
+                ],
                 description: "",
                 slide: 0,
                 sliding: null,
@@ -148,14 +170,24 @@
                 showingFull: false,
                 images: [],
                 venue: '',
-                newReviewRatings: {
+                newReview: {
                     starRating: 3,
-                    costRating: 0
+                    costRating: 0,
+                    reviewBody: ''
                 },
                 reviewOpen: false,
                 meanStarRating: 3,
-                modeCostRating: 'Free'
+                modeCostRating: 'Free',
+                notAdmin: true,
+
+                modalError: '',
+                modalHasError: false
             }
+        },
+        computed: {
+            'validBody': function() {
+                return this.newReview.reviewBody.length > 5;
+            },
         },
         mounted: function() {
             this.$cookies.set('redirect', this.$router.currentRoute.fullPath);
@@ -190,6 +222,10 @@
                     detail.category = this.venue.category;
                     detail.admin = this.venue.admin;
                     this.description = this.isLong ? this.venue.shortDescription + "..." : this.venue.shortDescription;
+                    if (this.$cookies.isKey('session'))
+                        this.notAdmin = this.$cookies.get('session').userId != this.venue.admin.userId ? true : false;
+                    else
+                        this.notAdmin = false;
                     if (this.venue.longDescription != null && this.venue.longDescription != "") this.isLong = true;
                     for (let photo in this.venue.photos) {
                         let image = this.venue.photos[photo];
@@ -210,9 +246,58 @@
                 return url + '/users/' + userId + '/photo';
             },
 
+            showModal: function() {
+                if (!this.$cookies.isKey('session')) return this.$router.push("/Login");
+                this.$root.$emit('bv::show::modal', 'newReviewModal')
+            },
+
             getDollars: function(value) {
                 if (value == 0 || value == null) return "Free";
                 return "$".repeat(value);
+            },
+
+            validateReview: function() {
+                let review = this.newReview;
+                if (review.starRating < 0 || review.starRating > 5) {
+                    this.modalError = "Please select a valid star rating";
+                    this.modalHasError = true;
+                    return;
+                }
+                if (review.costRating < 0 || review.costRating > 4) {
+                    this.modalError = "Please select a valid cost Rating";
+                    this.modalHasError = true;
+                    return;
+                }
+                if (review.reviewBody.length <= 5) {
+                    this.modalError = "Body can't be that short!";
+                    this.modalHasError = true;
+                    return;
+                }
+                if (this.$cookies.get('session').userId == this.venue.admin.userId) {
+                    this.modalError = "You cannot review your own venue.";
+                    this.modalHasError = true;
+                    return;
+                }
+
+                let headers = {
+                    'X-Authorization': this.$cookies.get('session').token
+                };
+
+                this.$http.post(url + "/venues/" + this.$route.params.venueId + "/reviews", this.newReview, { headers })
+                    .then(function(response) {
+                        console.log(response);
+                    }, function(err) {
+                        if (err.status == 403) {
+                            this.modalError = "You can only post one review per venue.";
+                            this.modalHasError = true;
+                            return;
+                        }
+                        this.modalError = "An unknown error has occurred. Please try again soon.";
+                        this.modalHasError = true;
+                        return;
+                    });
+
+                // this.$root.$emit('bv::hide::modal', 'newReviewModal');
             },
 
             showMoreDesc: function() {
@@ -247,15 +332,6 @@
             padDateTime: function(n) {
                 return n<10 ? '0'+n : n;
             },
-
-            checkAuth: function() {
-                if (this.$cookies.isKey('session')) {
-                    this.reviewOpen = true;
-                    return;
-                }
-                this.reviewOpen = false;
-                this.$router.push('/Login');
-            }
         }
     }
 </script>
@@ -271,45 +347,8 @@
         color: rgb(88, 124, 160);
     }
 
-    .link {
-        color: #fff;
-        transition: 0.1s;
-    }
-
-    .link:hover {
-        text-decoration: none;
-        color: #fff;
-    }
-
     .venueName {
         font-size: 3rem;
-    }
-
-    .info-cluster {
-        width: auto;
-    }
-
-    .stars-outer {
-        display: inline-block;
-        position: relative;
-        font-family: FontAwesome;
-    }
-
-    .stars-outer::before {
-        content: "\f006 \f006 \f006 \f006 \f006";
-    }
-
-    .stars-inner {
-        position: absolute;
-        top: 0;
-        left: 0;
-        white-space: nowrap;
-        overflow: hidden;
-    }
-
-    .stars-inner::before {
-        content: "\f005 \f005 \f005 \f005 \f005";
-        color: #f8ce0b;
     }
 
     .titleArea {
@@ -367,5 +406,23 @@
     .locationInformation {
         display: inline-flex;
         width: 100%;
+    }
+
+    .error {
+        border-color: rgba(252, 47, 51, 0.8);
+        outline: 0 none;
+    }
+
+    .error:focus {
+        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px rgba(252, 47, 51, 0.6);
+    }
+
+    .valid {
+        border-color: rgba(43, 255, 75, 0.8);
+        outline: 0 none;
+    }
+
+    .valid:focus {
+        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px rgba(43, 255, 75, 0.6);
     }
 </style>
