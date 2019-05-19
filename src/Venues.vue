@@ -418,7 +418,7 @@
 
                 this.$http.post(url + '/venues', this.newVenueModel, { headers })
                     .then(function(response) {
-                        console.log(response);
+                        this.filterCities();
                         this.$root.$emit('bv::hide::modal', 'newVenueModal')
                     }, function(err) {
                         console.log(err);

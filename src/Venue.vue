@@ -13,7 +13,7 @@
             <b-carousel
                 id="carousel-1"
                 v-model="slide"
-                :interval="1000000"
+                :interval="5000"
                 controls
                 indicators
                 background="#ababab"
@@ -35,9 +35,14 @@
                 </div>
             </b-carousel>
             <div class="venueInformation">
-                <b-table striped hover :items="detailsItem" :fields="fields" class="no-bottom">
+                <b-table striped hover :items="detailsItem" :fields="fields" :busy="busy" class="no-bottom">
+                    <div slot="table-busy">
+                        <div class="text-center">
+                            <b-spinner variant="primary" label="Spinning"></b-spinner>
+                        </div>
+                    </div>
                     <template slot="meanStarRating" slot-scope="row">
-                        <star-rating :rating="row.item.meanStarRating" :increment="0.1" :read-only="true" :show-rating="false" :star-size="20"></star-rating>
+                        <star-rating :rating="row.item.meanStarRating" :increment="0.1" :read-only="true" :show-rating="false" :star-size="20" style="height: 100%;"></star-rating>
                     </template>
                 </b-table>
             </div>
@@ -144,10 +149,11 @@
                 fields: [
                     { key: 'category.categoryName', label: 'Category', sortable: false },
                     { key: 'meanStarRating', label: 'Star Rating', formatter: value => {
-                            if (value == 0 || value == null || value == undefined) return '3.00';
+                            if (value == 0 || value == null || value == undefined) return parseInt('3').toFixed();
                             return value.toFixed(2);
                         }, sortable: false },
                     { key: 'modeCostRating', label: 'Cost Rating', formatter: value => {
+                            value = this.detailsItem.modeCostRating;
                             return this.getDollars(value);
                         }, sortable: false },
                     { key: 'admin.username', label: 'Admin Username', sortable: false },
@@ -177,6 +183,7 @@
                 showingFull: false,
                 images: [],
                 venue: '',
+                busy: true,
                 newReview: {
                     starRating: 3,
                     costRating: 0,
@@ -198,23 +205,27 @@
         mounted: function() {
             this.$cookies.set('redirect', this.$router.currentRoute.fullPath);
             let detail = {};
-            this.meanStarRating = this.$route.params.meanStarRating;
-            this.modeCostRating = this.$route.params.modeCostRating;
-            detail.meanStarRating = this.meanStarRating;
-            detail.modeCostRating = this.modeCostRating;
-            if (this.meanStarRating == null || this.modeCostRating == null) {
+            detail.meanStarRating = this.$route.params.meanStarRating;
+            detail.modeCostRating = this.$route.params.modeCostRating;
+            if (detail.meanStarRating == undefined || detail.modeCostRating == undefined) {
                 this.$http.get(url + '/venues')
-                    .then(function(response) {
+                    .then(function (response) {
                         for (let index in response.body) {
                             if (response.body[index].venueId == this.$route.params.venueId) {
-                                this.meanStarRating = response.body[index].meanStarRating;
-                                this.modeCostRating = response.body[index].modeCostRating;
-                                detail.meanStarRating = this.meanStarRating;
-                                detail.modeCostRating = this.modeCostRating;
+                                let meanStars = response.body[index].meanStarRating;
+                                let modeCost = response.body[index].modeCostRating;
+                                console.log(meanStars);
+                                detail.meanStarRating = meanStars;
+                                detail.modeCostRating = modeCost;
+                                if (meanStars == null || meanStars == 0) detail.meanStarRating = 3;
+                                if (modeCost == null || modeCost == 0) detail.modeCostRating = 0;
+                                this.busy = false;
                                 break;
                             }
                         }
                     });
+            } else {
+                this.busy = false;
             }
 
             this.$http.get(url + "/venues/" + this.$route.params.venueId + "/reviews")
