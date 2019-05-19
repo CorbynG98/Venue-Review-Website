@@ -170,9 +170,6 @@
                         :total-rows="totalRows"
                         :per-page="perPage"
                         class="my-0">
-                        <div slot="page">
-                            {{ getPageRange() }}
-                        </div>
                     </b-pagination>
                 </b-col>
             </b-row>
@@ -312,6 +309,14 @@
             getLink: function (venueId, photoFilename) {
                 if (venueId == null || photoFilename == null) return "/src/assets/default.jpg";
                 return (url + '/venues/' + venueId + '/photos/' + photoFilename);
+            },
+
+            pageGen: function() {
+                return;
+            },
+
+            linkGen: function(pageNum) {
+                return pageNum === 1 ? '?' : `?page=${pageNum}`
             },
 
             onFileChange: function(e) {
