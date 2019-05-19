@@ -68,15 +68,20 @@
                         title="New Venue"
                         centered>
                         <form ref="form">
-                            <template>
+                            <!-- <template>
                                 <div>
-                                    <gallery :images="photoQueue" :index="null" style="overflow-x: scroll;"></gallery>
-                                    <div
-                                        class="image"
-                                        v-for="(image, imageIndex) in photoQueue"
-                                        :key="imageIndex"
-                                        :style="{ backgroundImage: 'url(' + image + ')', width: '300px', height: '200px' }">
-
+                                    <gallery :images="photoPreview" :index="null" style="overflow-x: scroll; margin:auto !important;"></gallery>
+                                    <div v-if="hasImages">
+                                        <div
+                                            style="margin:auto !important;"
+                                            class="image"
+                                            v-for="(image, imageIndex) in photoPreview"
+                                            :key="imageIndex"
+                                            :style="{ backgroundImage: 'url(' + image + ')', width: '300px', height: '200px' }">
+                                        </div>
+                                    </div>
+                                    <div v-else>
+                                        <b-img src="src/assets/default.jpg" width="300px" height="200px"></b-img>
                                     </div>
                                 </div>
                             </template>
@@ -92,8 +97,33 @@
                                         accept=".jpg, .png, image/jpeg, image/png"
                                     ></b-form-file>
                                 </div>
-                            </template>
+                            </template> -->
+                            <div style="display: inline-flex; width: 100%; margin-top: 0; margin-bottom: 1rem;">
+                                <b-form-input v-model="newVenueModel.venueName" placeholder="Venues name" style="margin-right: 1rem;"></b-form-input>
+                                <b-form-select v-model="newVenueModel.categoryId" :options="categoryOptions"style="margin-right: 1rem; margin-left: 1rem;"></b-form-select>
+                                <b-form-input v-model="newVenueModel.city" placeholder="City"style="margin-left: 1rem;"></b-form-input>
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                <b-form-input v-model="newVenueModel.shortDescription" placeholder="Short Description" style="margin-bottom: 1rem;"></b-form-input>
+                                <b-form-input v-model="newVenueModel.longDescription" placeholder="Long Description"></b-form-input>
+                            </div>
+                            <b-form-input v-model="newVenueModel.address" placeholder="Address" style="margin-bottom: 1rem;"></b-form-input>
+                            <div style="display: inline-flex; margin-bottom: 0; width: 100%;">
+                                <b-form-input v-model="newVenueModel.longitude" placeholder="Latitude" style="margin-right: 1rem;"></b-form-input>
+                                <b-form-input v-model="newVenueModel.latitude" placeholder="Longitude" style="margin-left: 1rem;"></b-form-input>
+                            </div>
                         </form>
+                        <template slot="modal-footer">
+                            <div v-if="modalHasError" class="text-danger">
+                                {{ modalError }}
+                            </div>
+                            <b-button primary size="lg" variant="danger" v-on:click="hideModal()">
+                                Cancel
+                            </b-button>
+                            <b-button primary size="lg" variant="success" v-on:click="uploadNewVenue()">
+                                Submit
+                            </b-button>
+                        </template>
                     </b-modal>
                 </div>
             </div>
@@ -173,7 +203,6 @@
                     {key: 'shortDescription', label: 'Desc', class: 'text-center', sortable: false},
                     {
                         key: 'meanStarRating', label: 'Star Rating', sortable: true, formatter: value => {
-                            console.log("test: " + value);
                             if (value == 0 || value == null || value == undefined) return parseInt('3').toFixed(2);
                             return value.toFixed(2);
                         }, class: 'text-center', sortDirection: 'asc'
@@ -190,6 +219,7 @@
                 currentPage: 1,
                 perPage: 10,
                 venuePhotos: [],
+                photoPreview: [],
                 pageOptions: [10, 15, 20],
                 starOptions: [1, 2, 3, 4, 5],
                 photoQueue: [],
@@ -200,6 +230,16 @@
                     {value: 3, text: '$$$'},
                     {value: 4, text: '$$$$'}
                 ],
+                newVenueModel: {
+                    venueName: "",
+                    categoryId: 0,
+                    city: "",
+                    shortDescription: "",
+                    longDescription: "",
+                    address: "",
+                    latitude: null,
+                    longitude: null
+                },
                 categoryOptions: [],
                 sortBy: null,
                 sortDesc: false,
@@ -216,7 +256,10 @@
                     id: 'info-modal',
                     title: '',
                     content: ''
-                }
+                },
+                modalHasError: false,
+                modalError: "",
+                hasImages: false
             }
         },
         mounted: function () {
@@ -226,7 +269,8 @@
                     this.categories = response.body;
                     for (let cat in this.categories) {
                         let name = this.categories[cat].categoryName;
-                        this.categoryOptions.push(name);
+                        let id = this.categories[cat].categoryId;
+                        this.categoryOptions.push({value: id, text: name});
                     }
                     this.isBusy = false;
                 });
@@ -235,6 +279,7 @@
         },
         updated: function () {
             this.totalRows = this.items.length;
+            this.hasImages = this.photoQueue.length > 0 ? true : false;
         },
         methods: {
             getVenues: function () {
@@ -270,17 +315,17 @@
             },
 
             onFileChange: function(e) {
-                // for (let image in this.venuePhotos) {
-                //     let files = image.target.files || image.dataTransfer.files;
-                //     if (!files.length)
-                //         return;
-                //     this.createImage(files[0]);
-                // }
                 let files = e.target.files || e.dataTransfer.files;
                 if (!files.length)
                     return;
-                for(let image in files)
-                    this.createImage(files[image]);
+                for(let image in files) {
+                    this.photoQueue.push(files[image]);
+                    this.createImage(files[image])
+                }
+            },
+
+            hideModal: function() {
+                this.$root.$emit('bv::hide::modal', 'newVenueModal')
             },
 
             createImage: function(file) {
@@ -289,7 +334,7 @@
                 let vm = this;
 
                 reader.onload = (e) => {
-                    vm.photoQueue.push(e.target.result);
+                    vm.photoPreview.push(e.target.result);
                 };
                 reader.readAsDataURL(file);
             },
@@ -309,9 +354,75 @@
 
             getPageRange: function () {
                 let current = parseInt(this.currentPage);
-                let end = current + 9;
-
+                let end = current + this.perPage - 1;
+                end = end > this.totalRows ? this.totalRows : end;
                 return (current + ' - ' + end);
+            },
+
+            uploadNewVenue: function() {
+                console.log();
+                this.modalHasError = false;
+                if (this.newVenueModel.venueName.length < 3) {
+                    this.modalError = "Venue name cant be that short!";
+                    this.modalHasError = true;
+                    return;
+                }
+                if (this.newVenueModel.categoryId == null) {
+                    this.modalError = "Please choose a valid category";
+                    this.modalHasError = true;
+                    return;
+                }
+                if (this.newVenueModel.city.length < 1) {
+                    this.modalError = "Please enter a valid city name";
+                    this.modalHasError = true;
+                    return;
+                }
+                if (this.newVenueModel.shortDescription.length < 5) {
+                    this.modalError = "Please enter a valid description";
+                    this.modalHasError = true;
+                    return;
+                }
+                if (this.newVenueModel.longDescription.length < 10) {
+                    this.modalError = "Long description cant be that short!";
+                    this.modalHasError = true;
+                    return;
+                }
+                if (this.newVenueModel.address.length < 5) {
+                    this.modalError = "Please enter the full address";
+                    this.modalHasError = true;
+                    return;
+                }
+                if (this.newVenueModel.longitude == null) {
+                    this.modalError = "Venue needs a location!";
+                    this.modalHasError = true;
+                    return;
+                }
+                if (this.newVenueModel.latitude == null) {
+                    this.modalError = "Venue needs a location!";
+                    this.modalHasError = true;
+                    return;
+                }
+
+                try {
+                    this.newVenueModel.latitude = parseInt(this.newVenueModel.latitude);
+                    this.newVenueModel.longitude = parseInt(this.newVenueModel.longitude);
+                } catch ( Exception ) {
+                    this.modalError = "Latitude and Longitude must be numbers";
+                    this.modalHasError = true;
+                    return;
+                }
+
+                let headers = {
+                    'X-Authorization': this.$cookies.get('session').token
+                };
+
+                this.$http.post(url + '/venues', this.newVenueModel, { headers })
+                    .then(function(response) {
+                        console.log(response);
+                        this.$root.$emit('bv::hide::modal', 'newVenueModal')
+                    }, function(err) {
+                        console.log(err);
+                    });
             },
 
             filterCities: function () {
@@ -319,9 +430,7 @@
                 let queryParams = {};
                 if (this.citySort != null) queryParams.city = this.citySort;
                 if (this.categorySort != null) {
-                    for (let cat in this.categories) {
-                        if (this.categories[cat].categoryName === this.categorySort) queryParams.categoryId = this.categories[cat].categoryId;
-                    }
+                    queryParams.categoryId = this.categorySort;
                 }
                 if (this.minStar != null) {
                     queryParams.minStarRating = this.minStar;
@@ -383,11 +492,11 @@
     }
 
     .image {
-        float: left;
+        display: inline-flex;
+        margin: auto;
         background-size: cover;
         background-repeat: no-repeat;
         background-position: center center;
         border: 1px solid #ebebeb;
-        margin: 5px;
     }
 </style>

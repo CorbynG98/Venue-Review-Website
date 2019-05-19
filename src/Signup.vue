@@ -79,7 +79,11 @@
       methods: {
         signup: function() {
           // Make sure all the data is valid before posting
-          if (!this.checkPasswords || !this.validFName || !this.validLName || !this.validUsername || !this.validEmail) return;
+          if (!this.checkPasswords || !this.validFName || !this.validLName || !this.validUsername || !this.validEmail) {
+              this.error = "Please make sure all fields are valid.";
+              this.errorFlag = true;
+              return;
+          }
           let data = {
             username: this.username,
             givenName: this.firstName,

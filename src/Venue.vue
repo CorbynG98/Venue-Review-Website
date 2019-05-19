@@ -263,7 +263,6 @@
             },
 
             validateReview: function() {
-                this.reviewBusy = true;
                 let review = this.newReview;
                 if (review.starRating < 0 || review.starRating > 5) {
                     this.modalError = "Please select a valid star rating";
@@ -289,6 +288,8 @@
                 let headers = {
                     'X-Authorization': this.$cookies.get('session').token
                 };
+
+                this.reviewBusy = true;
 
                 this.$http.post(url + "/venues/" + this.$route.params.venueId + "/reviews", this.newReview, { headers })
                     .then(function(response) {
