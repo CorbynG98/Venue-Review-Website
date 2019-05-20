@@ -485,6 +485,8 @@
                     let vm = this;
                     queryParams.reverseSort = false;
                     if (this.distanceSort == 1) queryParams.reverseSort = true;
+                    console.log("TEST GEO LOCATION");
+                    console.log(navigator.geolocation);
                     if (navigator.geolocation) {
                         navigator.geolocation.getCurrentPosition(function(returned) {
                             queryParams.sortBy = "DISTANCE";
@@ -499,10 +501,13 @@
                                 });
                             }
                             vm.runSortCode(queryParams);
+                        }, function(err) {
+                            console.log("TEST GEO LOCATION");
+                            vm.distanceSort = null;
+                            vm.isBusy = false;
+                            alert("Location is not enabled!");
+                            return;
                         });
-                    } else {
-                        alert("Geolocation is not supported by this browser.");
-                        return;
                     }
                 } else {
                     this.queryParams = {};
