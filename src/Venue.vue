@@ -45,7 +45,7 @@
             </div>
             <div v-if="editMode" style="margin: 1rem 0 1rem auto;">
                 <b-button variant="danger" style="float: right; margin-left: 1rem;">Remove Images</b-button>
-                <b-button variant="primary" style="float: right;">Add Image/s</b-button>
+                <b-button variant="primary" style="float: right;" v-on:click="uploadPhotoModal()">Add Image/s</b-button>
             </div>
 
             <div class="venueInformation" style="clear: both;" v-bind:class="[editMode ? 'margintop' : 'nomargintop']">
@@ -191,6 +191,52 @@
                 </b-table>
             </div>
         </div>
+        <b-modal
+            id="uploadVenuePhotoModal"
+            size="lg"
+            title="Upload Photo"
+            centered>
+            <form ref="form">
+                <template>
+                    <div v-if="!hasNewImages()">
+                        <b-img :src="newVenuePhotosPreview" width="500px" height="350px" style="margin: auto; display: block; margin-bottom: 1rem;">
+
+                        </b-img>
+                    </div>
+                    <div v-else style="width: 100%; margin: auto;">
+                        <b-img src="/src/assets/default.jpg" width="500px" height="350px" style="margin: auto; display: block; margin-bottom: 1rem;">
+
+                        </b-img>
+                    </div>
+                </template>
+                <template>
+                    <div style="margin-bottom: 1rem;">
+                        <b-form-file
+                            v-model="newUploads"
+                            :state="Boolean(newUploads)"
+                            :multiple="false"
+                            placeholder="Choose a file..."
+                            drop-placeholder="Drop file here..."
+                            @change="onFileChange"
+                            accept=".jpg, .png, image/jpeg, image/png"
+                        ></b-form-file>
+                    </div>
+                </template>
+                <b-form-input v-model="newVenuePhoto.description" placeholder="Photo description" style="margin-right: 1rem; margin-bottom: 1rem;"></b-form-input>
+                <b-form-checkbox v-model="newVenuePhoto.makePrimary" :options="categoryOptions"style="margin-right: 1rem; margin-left: 1rem;">Make this the primary photo for the venue?</b-form-checkbox>
+            </form>
+            <template slot="modal-footer">
+                <div v-if="modalHasError" class="text-danger">
+                    {{ modalError }}
+                </div>
+                <b-button primary size="lg" variant="danger" v-on:click="hideModal()">
+                    Cancel
+                </b-button>
+                <b-button primary size="lg" variant="success" v-on:click="uploadNewVenue()">
+                    Submit
+                </b-button>
+            </template>
+        </b-modal>
     </b-container>
 </template>
 
@@ -241,8 +287,13 @@
                 },
                 categoryOptions: [],
                 categories: [],
-                newVenuePhotosPreview: [],
-                newVenuePhotos: [],
+                newVenuePhotosPreview: "",
+                newUploads: [],
+                newVenuePhoto: {
+                    photo: "",
+                    description: "",
+                    makePrimary: false
+                },
                 description: "",
                 slide: 0,
                 sliding: null,
@@ -271,6 +322,9 @@
             'validBody': function() {
                 return this.newReview.reviewBody.length > 5;
             },
+        },
+        updated: function() {
+            console.log(this.newVenuePhoto.photo);
         },
         mounted: function() {
             this.$cookies.set('redirect', this.$router.currentRoute.fullPath);
@@ -350,6 +404,10 @@
                 return this.images.length != 0;
             },
 
+            hasNewImages: function() {
+                return this.newUploads.length >= 0;
+            },
+
             editVenue: function() {
                 this.editMode = true;
             },
@@ -365,6 +423,19 @@
                 this.updateVenueDetails.shortDescription = this.venue.shortDescription;
 
                 this.editMode = false;
+            },
+
+            uploadNewPhoto: function() {
+                if (this.newVenuePhoto.photo == "") {
+                    this.modalError = "Please select a valid image!";
+                    this.modalHasError = true;
+                    return;
+                }
+                if (this.newVenuePhoto.description.length <= 5) {
+                    this.modalError = "";
+                    this.modalHasError = true;
+                    return;
+                }
             },
 
             validateAndSubmitChanges: function() {
@@ -428,26 +499,23 @@
             },
 
             onFileChange: function(e) {
-                let files = e.target.files || e.dataTransfer.files;
-                if (!files.length)
-                    return;
-                for(let image in files) {
-                    this.newVenuePhotos.push(files[image]);
-                    this.createImage(files[image])
+                this.modalHasError = false;
+                let input = e.target;
+                if (input.files && input.files[0]) {
+                    console.log(input.files[0]);
+                    if (input.files[0].size > 20000000) {
+                        this.modalError = "The file size is too large.";
+                        this.modalHasError = true;
+                        this.newUploads = [];
+                        return;
+                    }
+                    let reader = new FileReader();
+                    reader.onload = (e) => {
+                        this.newVenuePhotosPreview = e.target.result;
+                        this.newVenuePhoto.photo = e.target.result;
+                    };
+                    reader.readAsDataURL(input.files[0]);
                 }
-            },
-
-            createImage: function(file) {
-                let image = new Image();
-                let reader = new FileReader();
-                let vm = this;
-
-                reader.onload = (e) => {
-                    vm.images.push(e.target.result);
-                    vm.newVenuePhotosPreview.push(e.target.result);
-                };
-
-                reader.readAsDataURL(file);
             },
 
             getProfileImgLink: function(userId) {
@@ -549,6 +617,10 @@
                             }
                         }
                     });
+            },
+
+            uploadPhotoModal: function() {
+                this.$root.$emit('bv::show::modal', 'uploadVenuePhotoModal');
             },
 
             showMoreDesc: function() {
