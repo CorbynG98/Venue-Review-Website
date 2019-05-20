@@ -198,7 +198,7 @@
             centered>
             <form ref="form">
                 <template>
-                    <div v-if="!hasNewImages()">
+                    <div v-if="hasNewImages">
                         <b-img :src="newVenuePhotosPreview" width="500px" height="350px" style="margin: auto; display: block; margin-bottom: 1rem;">
 
                         </b-img>
@@ -322,9 +322,10 @@
             'validBody': function() {
                 return this.newReview.reviewBody.length > 5;
             },
-        },
-        updated: function() {
-            console.log(this.newVenuePhoto.photo);
+            'hasNewImages': function() {
+                return this.newUploads != [];
+            },
+
         },
         mounted: function() {
             this.$cookies.set('redirect', this.$router.currentRoute.fullPath);
@@ -402,10 +403,6 @@
         methods: {
             imageExists: function() {
                 return this.images.length != 0;
-            },
-
-            hasNewImages: function() {
-                return this.newUploads.length >= 0;
             },
 
             editVenue: function() {
@@ -502,7 +499,6 @@
                 this.modalHasError = false;
                 let input = e.target;
                 if (input.files && input.files[0]) {
-                    console.log(input.files[0]);
                     if (input.files[0].size > 20000000) {
                         this.modalError = "The file size is too large.";
                         this.modalHasError = true;
