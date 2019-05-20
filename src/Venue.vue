@@ -6,39 +6,60 @@
             </div>
         </div>
         <div v-else>
-            <div class="titleArea">
-                <h3 class="venueName"> {{ venue.venueName }} </h3>
+            <div v-if="editMode" class="titleArea">
+                <b-input class="venueName" style="width: 70%; font-size: 2rem; margin-bottom: 1rem;" v-model="updateVenueDetails.venueName"></b-input>
                 <router-link :to="{name: 'Venues'}" class="linkBlack return">Return to venue list</router-link>
             </div>
-            <b-carousel
-                id="carousel-1"
-                v-model="slide"
-                :interval="5000"
-                controls
-                indicators
-                background="#ababab"
-                img-width="1024"
-                img-height="480"
-                :contain="true"
-                style="text-shadow: 1px 1px 2px; height: 480px;">
-                <div v-if="imageExists()">
-                    <div v-for="image in images">
-                        <b-carousel-slide v-bind:img-src='image.src'>
-                            <h1>{{ image.desc }}</h1>
+            <div v-else>
+                <div class="titleArea">
+                    <h3 class="venueName"> {{ venue.venueName }} </h3>
+                    <router-link :to="{name: 'Venues'}" class="linkBlack return">Return to venue list</router-link>
+                </div>
+            </div>
+
+            <div>
+                <b-carousel
+                    id="carousel-1"
+                    v-model="slide"
+                    :interval="5000"
+                    controls
+                    indicators
+                    background="#ababab"
+                    img-width="1024"
+                    img-height="480"
+                    :contain="true"
+                    style="text-shadow: 1px 1px 2px; height: 480px;">
+                    <div v-if="imageExists()">
+                        <div v-for="image in images">
+                            <b-carousel-slide v-bind:img-src='image.src'>
+                                <h1>{{ image.desc }}</h1>
+                            </b-carousel-slide>
+                        </div>
+                    </div>
+                    <div v-else>
+                        <b-carousel-slide img-src="/src/assets/default.jpg" style="height: 480px; background-position: 50% 50%;">
+                            <h1>No images found for this venue</h1>
                         </b-carousel-slide>
                     </div>
-                </div>
-                <div v-else>
-                    <b-carousel-slide img-src="/src/assets/default.jpg" style="height: 480px; background-position: 50% 50%;">
-                        <h1>No images found for this venue</h1>
-                    </b-carousel-slide>
-                </div>
-            </b-carousel>
-            <div class="venueInformation">
+                </b-carousel>
+            </div>
+            <div v-if="editMode" style="margin: 1rem 0 1rem auto;">
+                <b-button variant="danger" style="float: right; margin-left: 1rem;">Remove Images</b-button>
+                <b-button variant="primary" style="float: right;">Add Image/s</b-button>
+            </div>
+
+            <div class="venueInformation" style="clear: both;" v-bind:class="[editMode ? 'margintop' : 'nomargintop']">
                 <b-table striped hover :items="detailsItem" :fields="fields" :busy="busy" class="no-bottom">
                     <div slot="table-busy">
                         <div class="text-center">
                             <b-spinner variant="primary" label="Spinning"></b-spinner>
+                        </div>
+                    </div>
+                    <div v-if="editMode" slot="category.categoryName">
+                        <div>
+                            <b-form-group label-cols-sm="1" class="mb-0">
+                                <b-form-select v-model="updateVenueDetails.categoryId" :options="categoryOptions"></b-form-select>
+                            </b-form-group>
                         </div>
                     </div>
                     <template slot="meanStarRating" slot-scope="row">
@@ -48,21 +69,56 @@
             </div>
             <div clas="someMoreInformation" style="margin: 2rem 0 2rem 0;">
                 <div class="locationInformation">
-                    <p style="margin-left: 2rem; margin-right: auto;"><strong>City:</strong> {{ venue.city }}</p>
-                    <p style="margin-left: auto; margin-right: 2rem;"><strong>Address:</strong> {{ venue.address }}</p>
+                    <div v-if="editMode" class="locationInformation">
+                        <p style="margin-left: 2rem; line-height: 2.2rem;"><strong>City:&nbsp</strong></p><b-input style="width: 30%; margin-left: 0; float: left;" v-model="updateVenueDetails.city"></b-input>
+                        <p style="margin-left: auto; line-height: 2.2rem;"><strong>Address:&nbsp</strong></p><b-input style="width: 30%; margin-left: 0; float: left;" v-model="updateVenueDetails.address"></b-input>
+                    </div>
+                    <div v-else class="locationInformation">
+                        <p style="margin-left: 2rem; margin-right: auto;"><strong>City:</strong> {{ venue.city }}</p>
+                        <p style="margin-left: auto; margin-right: 2rem;"><strong>Address:</strong> {{ venue.address }}</p>
+                    </div>
                 </div>
-                <div class="descriptions" style="transition: all 1s;">
-                    <h6> <strong>Description: </strong>{{ description }}&nbsp
-                        <div v-if="isLong">
-                            <a class="showMore" style="font-size: 1rem; line-height: inherit;" v-on:click="showMoreDesc()">({{ showText }})</a>
-                        </div>
-                    </h6>
+                <div class="descriptions" style="transition: all 1s; margin-top: 1rem; width: 100%;">
+                    <div v-if="editMode" class="locationInformation" style="width: 100%;">
+                        <p style="margin-left: 2rem; line-height: 2.2rem;"><strong>Short Description:&nbsp</strong></p><b-input style="width: 40%; margin-left: 0; float: left;" v-model="updateVenueDetails.shortDescription"></b-input>
+                        <p style="margin-left: auto; line-height: 2.2rem;"><strong>Long Description:&nbsp</strong></p><b-textarea style="width: 30%; margin-left: 0; float: left; min-height: 2.4rem; height: 2.4rem;" v-model="updateVenueDetails.longDescription"></b-textarea>
+                    </div>
+                    <div v-else style="margin: auto;">
+                        <h6> <strong>Description: </strong>{{ description }}&nbsp
+                            <div v-if="isLong">
+                                <a class="showMore" style="font-size: 1rem; line-height: inherit;" v-on:click="showMoreDesc()">({{ showText }})</a>
+                            </div>
+                        </h6>
+                    </div>
+                </div>
+                <div v-if="editMode" class="descriptions" style="transition: all 1s; margin-top: 1rem; width: 100%;">
+                    <div class="locationInformation" style="width: 100%;">
+                        <p style="margin-left: 2rem; line-height: 2.2rem;"><strong>Longitude:&nbsp</strong></p><b-input style="width: 20%; margin-left: 0; float: left;" v-model="updateVenueDetails.latitude"></b-input>
+                        <p style="margin-left: auto; line-height: 2.2rem;"><strong>Latitude:&nbsp</strong></p><b-input style="width: 20%; margin-left: 0; float: left;" v-model="updateVenueDetails.longitude"></b-input>
+                    </div>
                 </div>
             </div>
-            <div class="reviewsTable">
+            <div v-if="editMode" style="width:100%; display: inline-flex;">
+                <div style="width: 100%;">
+                    <p v-if="errorFlag" class="text-danger" style="float: right; margin-right: 1rem; margin-bottom: 0; line-height: 2rem;">{{ error }}</p>
+                </div>
+                <div style="display: inline-flex; width: auto;">
+                    <b-button variant="primary" style="margin-left: auto; margin-right: 1rem;" v-on:click="validateAndSubmitChanges()">Submit Changes</b-button>
+                    <b-button variant="danger" v-on:click="discardChanges()">Discard Changes</b-button>
+                </div>
+            </div>
+            <div v-if="!notAdmin">
+                <b-button v-if="!editMode" v-on:click="editVenue()">Edit Venue</b-button>
+            </div>
+            <div class="reviewsTable" style="clear:both;">
                 <div class="reviewTitle"> <h2>Reviews</h2> </div>
                 <div v-if="notAdmin">
-                    <b-button v-on:click="showModal()" ref="btnShow">Write a review</b-button>
+                    <div v-if="editMode">
+                        <b-button v-on:click="showModal()" ref="btnShow" :disabled="true">Write a review</b-button>
+                    </div>
+                    <div v-else>
+                        <b-button v-on:click="showModal()" ref="btnShow">Write a review</b-button>
+                    </div>
 
                     <b-modal
                         id="newReviewModal"
@@ -104,7 +160,7 @@
                         </template>
                     </b-modal>
                 </div>
-                <b-table striped hover :items="reviewItems" :fields="reviewFields" :busy="reviewBusy" style="margin-top: 2rem;">
+                <b-table striped hover :items="reviewItems" :fields="reviewFields" :busy="reviewBusy" style="margin-top: 2rem;" show-empty>
                     <div slot="table-busy">
                         <div class="text-center">
                             <b-spinner variant="primary" label="Spinning"></b-spinner>
@@ -147,7 +203,7 @@
                 errorFlag: false,
                 detailsItem: [],
                 fields: [
-                    { key: 'category.categoryName', label: 'Category', sortable: false },
+                    { key: 'category.categoryName', label: 'Category', slot: "categoryId", sortable: false },
                     { key: 'meanStarRating', label: 'Star Rating', formatter: value => {
                             if (value == 0 || value == null || value == undefined) return parseInt('3').toFixed();
                             return value.toFixed(2);
@@ -173,6 +229,20 @@
                     { value: 3, text: '$$$' },
                     { value: 4, text: '$$$$' }
                 ],
+                updateVenueDetails: {
+                    venueName: "",
+                    categoryId: null,
+                    city: "",
+                    address: "",
+                    longitude: null,
+                    latitude: null,
+                    shortDescription: "",
+                    longDescription: ""
+                },
+                categoryOptions: [],
+                categories: [],
+                newVenuePhotosPreview: [],
+                newVenuePhotos: [],
                 description: "",
                 slide: 0,
                 sliding: null,
@@ -192,7 +262,7 @@
                 meanStarRating: 3,
                 modeCostRating: 'Free',
                 notAdmin: true,
-
+                editMode: false,
                 modalError: '',
                 modalHasError: false
             }
@@ -228,6 +298,17 @@
                 this.busy = false;
             }
 
+            this.$http.get(url + "/categories")
+                .then(function (response) {
+                    this.categories = response.body;
+                    for (let cat in this.categories) {
+                        let name = this.categories[cat].categoryName;
+                        let id = this.categories[cat].categoryId;
+                        this.categoryOptions.push({value: id, text: name});
+                    }
+                    this.isBusy = false;
+                });
+
             this.$http.get(url + "/venues/" + this.$route.params.venueId + "/reviews")
                 .then(function(response) {
                     this.reviewItems = response.body;
@@ -239,6 +320,16 @@
                     this.venue = response.body;
                     detail.category = this.venue.category;
                     detail.admin = this.venue.admin;
+
+                    this.updateVenueDetails.venueName = this.venue.venueName;
+                    this.updateVenueDetails.address = this.venue.address;
+                    this.updateVenueDetails.categoryId = this.venue.categoryId;
+                    this.updateVenueDetails.city = this.venue.city;
+                    this.updateVenueDetails.latitude = this.venue.latitude;
+                    this.updateVenueDetails.longitude = this.venue.longitude;
+                    this.updateVenueDetails.longDescription = this.venue.longDescription;
+                    this.updateVenueDetails.shortDescription = this.venue.shortDescription;
+
                     this.description = this.isLong ? this.venue.shortDescription + "..." : this.venue.shortDescription;
                     if (this.$cookies.isKey('session'))
                         this.notAdmin = this.$cookies.get('session').userId != this.venue.admin.userId ? true : false;
@@ -257,6 +348,106 @@
         methods: {
             imageExists: function() {
                 return this.images.length != 0;
+            },
+
+            editVenue: function() {
+                this.editMode = true;
+            },
+
+            discardChanges: function() {
+                this.updateVenueDetails.venueName = this.venue.venueName;
+                this.updateVenueDetails.address = this.venue.address;
+                this.updateVenueDetails.categoryId = this.venue.categoryId;
+                this.updateVenueDetails.city = this.venue.city;
+                this.updateVenueDetails.latitude = this.venue.latitude;
+                this.updateVenueDetails.longitude = this.venue.longitude;
+                this.updateVenueDetails.longDescription = this.venue.longDescription;
+                this.updateVenueDetails.shortDescription = this.venue.shortDescription;
+
+                this.editMode = false;
+            },
+
+            validateAndSubmitChanges: function() {
+                if (this.updateVenueDetails.venueName.length < 5) {
+                    this.error = "Make sure the new name is valid.";
+                    this.errorFlag = true;
+                    return;
+                }
+                if (this.updateVenueDetails.categoryId == null) {
+                    this.error = "Choose a valid category!";
+                    this.errorFlag = true;
+                    return;
+                }
+                if (this.updateVenueDetails.city.length < 5) {
+                    this.error = "Make sure the new city is valid.";
+                    this.errorFlag = true;
+                    return;
+                }
+                if (this.updateVenueDetails.address.length < 10) {
+                    this.error = "Make sure the new address is valid.";
+                    this.errorFlag = true;
+                    return;
+                }
+                if (this.updateVenueDetails.shortDescription.length < 5) {
+                    this.error = "Make sure the new short description is valid.";
+                    this.errorFlag = true;
+                    return;
+                }
+                if (this.updateVenueDetails.longDescription.length < 10) {
+                    this.error = "Make sure the new long description is valid.";
+                    this.errorFlag = true;
+                    return;
+                }
+                if (this.updateVenueDetails.latitude == null) {
+                    this.error = "Please enter a valid latitude.";
+                    this.errorFlag = true;
+                    return;
+                }
+                if (this.updateVenueDetails.longitude == null) {
+                    this.error = "Please enter a valid longitude.";
+                    this.errorFlag = true;
+                    return;
+                }
+
+                let headers = {
+                    'X-Authorization': this.$cookies.get('session').token
+                };
+
+                this.$http.patch(url + '/venues/' + this.$route.params.venueId, this.updateVenueDetails, { headers })
+                    .then(function(response) {
+                        this.editMode = false;
+                        this.$http.get(url + "/venues/" + this.$route.params.venueId + "/reviews")
+                            .then(function(response) {
+                                this.reviewItems = response.body;
+                                this.reviewBusy = false;
+                                this.updatePageInformation();
+                            });
+                    }, function(err) {
+                        console.log(err);
+                    });
+            },
+
+            onFileChange: function(e) {
+                let files = e.target.files || e.dataTransfer.files;
+                if (!files.length)
+                    return;
+                for(let image in files) {
+                    this.newVenuePhotos.push(files[image]);
+                    this.createImage(files[image])
+                }
+            },
+
+            createImage: function(file) {
+                let image = new Image();
+                let reader = new FileReader();
+                let vm = this;
+
+                reader.onload = (e) => {
+                    vm.images.push(e.target.result);
+                    vm.newVenuePhotosPreview.push(e.target.result);
+                };
+
+                reader.readAsDataURL(file);
             },
 
             getProfileImgLink: function(userId) {
@@ -307,7 +498,7 @@
                         this.$root.$emit('bv::hide::modal', 'newReviewModal');
                         this.$http.get(url + "/venues/" + this.$route.params.venueId + "/reviews")
                             .then(function(response) {
-                                this.reviewItems = response.body
+                                this.reviewItems = response.body;
                                 this.reviewBusy = false;
                             });
                     }, function(err) {
@@ -320,6 +511,43 @@
                         this.modalError = "An unknown error has occurred. Please try again soon.";
                         this.modalHasError = true;
                         return;
+                    });
+            },
+
+            updatePageInformation: function() {
+                this.$http.get(url + "/venues/" + this.$route.params.venueId)
+                    .then(function(response) {
+                        this.venue = response.body;
+                        this.detailsItem.category = this.venue.category;
+                        this.detailsItem.admin = this.venue.admin;
+
+                        this.description = this.isLong ? this.venue.shortDescription + "..." : this.venue.shortDescription;
+                        if (this.$cookies.isKey('session'))
+                            this.notAdmin = this.$cookies.get('session').userId != this.venue.admin.userId ? true : false;
+                        else
+                            this.notAdmin = false;
+                        if (this.venue.longDescription != null && this.venue.longDescription != "") this.isLong = true;
+                        for (let photo in this.venue.photos) {
+                            let image = this.venue.photos[photo];
+                            let newImage = {src: url + "/venues/" + this.$route.params.venueId + "/photos/" + image.photoFilename, desc: image.photoDescription};
+                            this.images.push(newImage);
+                        }
+                        this.isBusy = false;
+                    });
+                this.$http.get(url + '/venues')
+                    .then(function (response) {
+                        for (let index in response.body) {
+                            if (response.body[index].venueId == this.$route.params.venueId) {
+                                let meanStars = response.body[index].meanStarRating;
+                                let modeCost = response.body[index].modeCostRating;
+                                this.detailsItem.meanStarRating = meanStars;
+                                this.detailsItem.modeCostRating = modeCost;
+                                if (meanStars == null || meanStars == 0) this.detailsItem.meanStarRating = 3;
+                                if (modeCost == null || modeCost == 0) this.detailsItem.modeCostRating = 0;
+                                this.busy = false;
+                                break;
+                            }
+                        }
                     });
             },
 
@@ -447,5 +675,13 @@
 
     .valid:focus {
         box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px rgba(43, 255, 75, 0.6);
+    }
+
+    .margintop {
+        margin-top: 4.5rem;
+    }
+
+    .nomargintop {
+        mragin-top: 0;
     }
 </style>

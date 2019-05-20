@@ -272,7 +272,8 @@
                 modalHasError: false,
                 modalError: "",
                 hasImages: false,
-                queryParams: {}
+                queryParams: {},
+                editMode: false
             }
         },
         mounted: function () {
