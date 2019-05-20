@@ -53,6 +53,14 @@
                             </b-form-select>
                         </b-form-group>
                     </b-col>
+
+                    <b-col md="6" class="my-1">
+                        <b-form-group label-cols-sm="3" label="Sort by distance" class="mb-0">
+                            <b-form-select v-model="distanceSort" label="test" :options="distanceOptions" v-on:change="filterCities">
+                                <option slot="first" :value="null">-- All --</option>
+                            </b-form-select>
+                        </b-form-group>
+                    </b-col>
                 </b-row>
             </div>
             <div class="showFilters">
@@ -210,7 +218,7 @@
                             return "$".repeat(value);
                         }, class: 'text-center', sortDirection: 'desc'
                     },
-                    {key: 'actions', label: 'Actions', sortable: false},
+                    {key: 'actions', label: 'Actions', sortable: false}
                 ],
                 totalRows: 1,
                 currentPage: 1,
@@ -226,6 +234,10 @@
                     {value: 2, text: '$$'},
                     {value: 3, text: '$$$'},
                     {value: 4, text: '$$$$'}
+                ],
+                distanceOptions: [
+                    {value: 0, text: 'Closest'},
+                    {value: 1, text: 'Farthest'}
                 ],
                 newVenueModel: {
                     venueName: "",
@@ -254,9 +266,13 @@
                     title: '',
                     content: ''
                 },
+                position: null,
+                showingDistance: false,
+                distanceSort: null,
                 modalHasError: false,
                 modalError: "",
-                hasImages: false
+                hasImages: false,
+                queryParams: {}
             }
         },
         mounted: function () {
@@ -365,7 +381,6 @@
             },
 
             uploadNewVenue: function() {
-                console.log();
                 this.modalHasError = false;
                 if (this.newVenueModel.venueName.length < 3) {
                     this.modalError = "Venue name cant be that short!";
@@ -430,23 +445,12 @@
                     });
             },
 
-            filterCities: function () {
-                this.isBusy = true;
-                let queryParams = {};
-                if (this.citySort != null) queryParams.city = this.citySort;
-                if (this.categorySort != null) {
-                    queryParams.categoryId = this.categorySort;
-                }
-                if (this.minStar != null) {
-                    queryParams.minStarRating = this.minStar;
-                }
-                if (this.maxCost != null) {
-                    queryParams.maxCostRating = this.maxCost;
-                }
+            runSortCode: function(queryParams) {
                 if (queryParams === {}) return this.getVenues();
                 this.$http.get(url + "/venues", {params: queryParams})
                     .then(function (response) {
                         this.items = response.body;
+                        console.log(response.body);
                         for (let venue in this.items) {
                             if (this.items[venue].meanStarRating == 0 || this.items[venue].meanStarRating == null) this.items[venue].meanStarRating = 3;
                             for (let cat in this.categories) {
@@ -461,6 +465,55 @@
                         this.isBusy = false;
                         console.log(err);
                     });
+            },
+
+            filterCities: function () {
+                this.isBusy = true;
+                let queryParams = this.queryParams = {};
+                if (this.distanceSort == null) queryParams = this.queryParams;
+                if (this.citySort != null) queryParams.city = this.citySort;
+                if (this.categorySort != null) {
+                    queryParams.categoryId = this.categorySort;
+                }
+                if (this.minStar != null) {
+                    queryParams.minStarRating = this.minStar;
+                }
+                if (this.maxCost != null) {
+                    queryParams.maxCostRating = this.maxCost;
+                }
+                if (this.distanceSort != null) {
+                    let vm = this;
+                    if (this.distanceSort == 1) queryParams.reverseSort = true;
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(function(returned) {
+                            queryParams.sortBy = "DISTANCE";
+                            queryParams.myLatitude = returned.coords.latitude;
+                            queryParams.myLongitude = returned.coords.longitude;
+                            if (vm.showingDistance === false) {
+                                vm.showingDistance = true;
+                                vm.fields.splice(vm.fields.length - 1, 0, {
+                                    key: "distance",
+                                    label: "Distance",
+                                    sortable: true
+                                });
+                            }
+                            console.log(queryParams);
+                            vm.runSortCode(queryParams);
+                        });
+                    } else {
+                        alert("Geolocation is not supported by this browser.");
+                        return;
+                    }
+                } else {
+                    this.queryParams = {};
+                    if (queryParams === {}) return this.getVenues();
+                    if (this.showingDistance === true) {
+                        this.showingDistance = false;
+                        this.fields = this.fields.filter(function(value, index, arr) {
+                            return value.label !== "Distance";
+                        });
+                    }
+                }
             },
 
             onFiltered(filteredItems) {
