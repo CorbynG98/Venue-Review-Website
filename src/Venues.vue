@@ -483,6 +483,7 @@
                 }
                 if (this.distanceSort != null) {
                     let vm = this;
+                    queryParams.reverseSort = false;
                     if (this.distanceSort == 1) queryParams.reverseSort = true;
                     if (navigator.geolocation) {
                         navigator.geolocation.getCurrentPosition(function(returned) {
@@ -497,7 +498,6 @@
                                     sortable: true
                                 });
                             }
-                            console.log(queryParams);
                             vm.runSortCode(queryParams);
                         });
                     } else {
@@ -513,6 +513,8 @@
                             return value.label !== "Distance";
                         });
                     }
+                    if (queryParams == {}) return this.getVenues();
+                    this.runSortCode(queryParams);
                 }
             },
 
