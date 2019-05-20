@@ -485,7 +485,6 @@
                     let vm = this;
                     queryParams.reverseSort = false;
                     if (this.distanceSort == 1) queryParams.reverseSort = true;
-                    console.log("TEST GEO LOCATION");
                     console.log(navigator.geolocation);
                     if (navigator.geolocation) {
                         navigator.geolocation.getCurrentPosition(function(returned) {
@@ -497,12 +496,15 @@
                                 vm.fields.splice(vm.fields.length - 1, 0, {
                                     key: "distance",
                                     label: "Distance",
-                                    sortable: true
+                                    sortable: true,
+                                    formatter: value => {
+                                        if (value < 1) return ((value*1000).toFixed(2) + "m");
+                                        return (value.toFixed(2) + "km");
+                                    }
                                 });
                             }
                             vm.runSortCode(queryParams);
                         }, function(err) {
-                            console.log("TEST GEO LOCATION");
                             vm.distanceSort = null;
                             vm.isBusy = false;
                             alert("Location is not enabled!");
