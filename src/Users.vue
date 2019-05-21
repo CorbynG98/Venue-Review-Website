@@ -54,8 +54,8 @@
                     <b-modal id="editProfileModal" title="Edit Profile Details">
                         <b-input v-model="editDetails.givenName" placeholder="New First Name" style="margin-bottom: 1rem;"></b-input>
                         <b-input v-model="editDetails.familyName" placeholder="New Last Name" style="margin-bottom: 1rem;"></b-input>
-                        <b-input v-model="editDetails.password" placeholder="New Password" style="margin-bottom: 1rem;"></b-input>
-                        <b-input v-model="confirmPassword" placeholder="Confirm Password" style="margin-bottom: 1rem;"></b-input>
+                        <b-input type="password" v-model="editDetails.password" placeholder="New Password" style="margin-bottom: 1rem;"></b-input>
+                        <b-input type="password" v-model="confirmPassword" placeholder="Confirm Password" style="margin-bottom: 1rem;"></b-input>
                         <template slot="modal-footer">
                             <div v-if="modalHasError" class="text-danger">
                                 {{ modalError }}
@@ -121,7 +121,6 @@
             this.errorFlag = false;
             this.userId = this.$route.params.userId;
             this.profileImage = this.getProfileImgLink(this.$route.params.userId);
-            console.log(this.profileImage);
             this.$cookies.set('redirect', this.$router.currentRoute.fullPath);
             if (this.$route.params.userId) {
                 this.getUser();
@@ -148,7 +147,6 @@
 
                 this.$http.get(url + "/users/" + this.userId, { headers })
                     .then(function (res) {
-                        console.log(res);
                         this.searchedUser = res.body;
                         this.isBusy = false;
                         this.$router.push("/Users/" + this.userId)
@@ -164,7 +162,6 @@
                 this.modalHasError = false;
                 this.resetNewImage();
                 let input = e.target;
-                console.log(input.files[0]);
                 if (input.files && input.files[0]) {
                     if (input.files[0].size > 20000000) {
                         this.modalError = "The file size is too large.";
@@ -194,21 +191,26 @@
             validateNewData: function() {
                 this.modalHasError = false;
                 let changedData = {};
-                if (this.editDetails.givenName != "") {
+                if (this.editDetails.givenName.length >= 1) {
                     changedData.givenName = this.editDetails.givenName;
                 }
-                if (this.editDetails.familyName != "") {
+                if (this.editDetails.familyName.length >= 1) {
                     changedData.familyName = this.editDetails.familyName;
                 }
                 if ((this.editDetails.password == this.confirmPassword) && (this.password != "")) {
-                    changedData.givenName = this.editDetails.givenName;
+                    changedData.password = this.editDetails.password;
                 }
-                if ((this.editDetails.password != this.confirmPassword) && this.password != "" && this.confirmPassword != "") {
-                    this.modalError = "Passwords are not the same."
+                if ((this.editDetails.password != this.confirmPassword)) {
+                    this.modalError = "Passwords are not the same.";
                     this.modalHasError = true;
                     return;
                 }
-                this.$http.patch(url + '/users/' + this.$route.params.userId)
+
+                let headers = {
+                    'X-Authorization': this.$cookies.get('session').token
+                };
+
+                this.$http.patch(url + '/users/' + this.$route.params.userId, changedData, {headers})
                     .then(function(res) {
                         this.$root.$emit('bv::hide::modal', 'editProfileModal');
                         this.getUser();
