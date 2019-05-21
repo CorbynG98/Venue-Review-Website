@@ -69,11 +69,13 @@
             <div style="width: 100%; margin-top: 1rem;">
                 <div>
                     <b-button size="lg" variant="primary" v-on:click="showModal()" ref="btnShow" style="float: left; margin-bottom: 1rem;">New Venue</b-button>
-                    <div v-if="mineShowing">
-                        <b-button size="lg" variant="success" v-on:click="showAllVenues()" ref="btnShow" style="float: left; margin-bottom: 1rem; margin-left: 1rem;">All Venues</b-button>
-                    </div>
-                    <div v-else>
-                        <b-button size="lg" variant="primary" v-on:click="filterMyVenues()" ref="btnShow" style="float: left; margin-bottom: 1rem; margin-left: 1rem;">My Venues</b-button>
+                    <div>
+                        <div v-if="mineShowing">
+                            <b-button size="lg" variant="success" v-on:click="showAllVenues()" ref="btnShow" style="float: left; margin-bottom: 1rem; margin-left: 1rem;">All Venues</b-button>
+                        </div>
+                        <div v-else>
+                            <b-button size="lg" variant="primary" v-on:click="filterMyVenues()" ref="btnShow" style="float: left; margin-bottom: 1rem; margin-left: 1rem;">My Venues</b-button>
+                        </div>
                     </div>
 
                     <b-modal
@@ -305,9 +307,13 @@
             },
 
             filterMyVenues: function() {
-                this.mineShowing = true;
-                this.adminId = this.$cookies.get('session').userId;
-                this.filterCities();
+                if (this.$cookies.isKey('session')) {
+                    this.mineShowing = true;
+                    this.adminId = this.$cookies.get('session').userId;
+                    this.filterCities();
+                } else {
+                    this.$router.push("/Login");
+                }
             },
 
             showAllVenues: function() {

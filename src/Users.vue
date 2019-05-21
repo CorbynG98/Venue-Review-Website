@@ -201,16 +201,18 @@
             validateNewData: function() {
                 this.modalHasError = false;
                 let changedData = {};
+                let valid = true;
                 if (this.editDetails.givenName.length >= 1) {
                     changedData.givenName = this.editDetails.givenName;
                 }
                 if (this.editDetails.familyName.length >= 1) {
                     changedData.familyName = this.editDetails.familyName;
                 }
-                if ((this.editDetails.password == this.confirmPassword) && (this.password != "")) {
+                if (this.editDetails.password.length <= 1 || this.confirmPassword.length <= 1) valid = false;
+                if (this.editDetails.password == this.confirmPassword && valid) {
                     changedData.password = this.editDetails.password;
                 }
-                if ((this.editDetails.password != this.confirmPassword)) {
+                if (this.editDetails.password != this.confirmPassword) {
                     this.modalError = "Passwords are not the same.";
                     this.modalHasError = true;
                     return;
@@ -225,7 +227,8 @@
                         this.$root.$emit('bv::hide::modal', 'editProfileModal');
                         this.getUser();
                     }, function(err) {
-                        console.log(err);
+                        this.modalError = "Please fill in some fields...";
+                        this.modalHasError = true;
                     });
             },
 
