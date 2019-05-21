@@ -509,15 +509,14 @@
             },
 
             onFileChange: function(e) {
-                this.newVenuePhotosPreview = [];
-                this.newVenuePhoto =
                 this.modalHasError = false;
+                this.resetNewImage();
                 let input = e.target;
                 if (input.files && input.files[0]) {
                     if (input.files[0].size > 20000000) {
                         this.modalError = "The file size is too large.";
                         this.modalHasError = true;
-                        this.newUploads = [];
+                        this.resetNewImage();
                         return;
                     }
                     this.newVenuePhoto.photo = input.files[0];
@@ -527,6 +526,16 @@
                     };
                     reader.readAsDataURL(input.files[0]);
                 }
+            },
+
+            resetNewImage: function() {
+                this.newVenuePhotosPreview = "";
+                this.newUploads = [];
+                this.newVenuePhoto= {
+                    photo: "",
+                    description: "",
+                    makePrimary: false
+                };
             },
 
             getProfileImgLink: function(userId) {
