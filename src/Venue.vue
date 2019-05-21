@@ -198,13 +198,8 @@
             centered>
             <form ref="form">
                 <template>
-                    <div v-if="hasNewImages">
-                        <b-img :src="newVenuePhotosPreview" width="500px" height="350px" style="margin: auto; display: block; margin-bottom: 1rem;">
-
-                        </b-img>
-                    </div>
-                    <div v-else style="width: 100%; margin: auto;">
-                        <b-img src="/src/assets/default.jpg" width="500px" height="350px" style="margin: auto; display: block; margin-bottom: 1rem;">
+                    <div>
+                        <b-img :src="newVenuePhotosPreview" onerror="this.src='/src/assets/default.jpg'" width="500px" height="350px" style="margin: auto; display: block; margin-bottom: 1rem;">
 
                         </b-img>
                     </div>
@@ -310,6 +305,7 @@
                     costRating: 0,
                     reviewBody: ''
                 },
+                hasNewImages: false,
                 meanStarRating: 3,
                 modeCostRating: 'Free',
                 notAdmin: true,
@@ -321,11 +317,10 @@
         computed: {
             'validBody': function() {
                 return this.newReview.reviewBody.length > 5;
-            },
-            'hasNewImages': function() {
-                return this.newUploads != [];
-            },
-
+            }
+        },
+        updated: function() {
+            this.hasNewImages = this.hasNewImages.length >= 1 ? true : false;
         },
         mounted: function() {
             this.$cookies.set('redirect', this.$router.currentRoute.fullPath);
@@ -339,16 +334,17 @@
                             if (response.body[index].venueId == this.$route.params.venueId) {
                                 let meanStars = response.body[index].meanStarRating;
                                 let modeCost = response.body[index].modeCostRating;
-                                console.log(meanStars);
                                 detail.meanStarRating = meanStars;
                                 detail.modeCostRating = modeCost;
                                 if (meanStars == null || meanStars == 0) detail.meanStarRating = 3;
                                 if (modeCost == null || modeCost == 0) detail.modeCostRating = 0;
-                                this.busy = false;
                                 break;
                             }
                         }
+                        this.busy = false;
                     });
+            } else {
+                this.busy = false;
             }
 
             this.$http.get(url + "/categories")
@@ -382,8 +378,6 @@
                     this.updateVenueDetails.longDescription = this.venue.longDescription;
                     this.updateVenueDetails.shortDescription = this.venue.shortDescription;
 
-                    console.log(this.updateVenueDetails);
-
                     this.description = this.isLong ? this.venue.shortDescription + "..." : this.venue.shortDescription;
                     if (this.$cookies.isKey('session'))
                         this.notAdmin = this.$cookies.get('session').userId != this.venue.admin.userId ? true : false;
@@ -405,6 +399,7 @@
             },
 
             hideModal: function() {
+                this.$root.$emit('bv::hide::modal', 'uploadVenuePhotoModal');
                 this.$root.$emit('bv::hide::modal', 'uploadVenuePhotoModal');
             },
 
@@ -448,7 +443,6 @@
                     .then(function(response) {
                         this.hideModal();
                         this.updatePageInformation();
-                        console.log(response);
                     }, function(err) {
                         console.log(err);
                     });
@@ -515,6 +509,8 @@
             },
 
             onFileChange: function(e) {
+                this.newVenuePhotosPreview = [];
+                this.newVenuePhoto =
                 this.modalHasError = false;
                 let input = e.target;
                 if (input.files && input.files[0]) {
@@ -527,7 +523,6 @@
                     this.newVenuePhoto.photo = input.files[0];
                     let reader = new FileReader();
                     reader.onload = (e) => {
-                        console.log(e.target);
                         this.newVenuePhotosPreview = e.target.result;
                     };
                     reader.readAsDataURL(input.files[0]);
@@ -599,6 +594,8 @@
             },
 
             updatePageInformation: function() {
+                this.isBusy = true;
+                this.images = [];
                 this.$http.get(url + "/venues/" + this.$route.params.venueId)
                     .then(function(response) {
                         this.venue = response.body;

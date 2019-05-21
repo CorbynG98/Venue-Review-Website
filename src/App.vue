@@ -1,7 +1,7 @@
 <template>
     <div id = "app">
         <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
-            <a class="navbar-brand" href="#">YEETUS</a>
+            <a class="navbar-brand" href="#">ReviewEA</a>
             <div class="floater">
                 <ul class="navbar-nav mr-auto left">
                     <li class="nav-item">

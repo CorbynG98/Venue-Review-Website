@@ -308,6 +308,7 @@
                         for (let venue in this.items) {
                             citySet.add(this.items[venue].city);
                             if (this.items[venue].meanStarRating == 0 || this.items[venue].meanStarRating == null) this.items[venue].meanStarRating = 3;
+                            console.log(this.items);
                             for (let cat in this.categories) {
                                 if (parseInt(cat) + 1 === parseInt(this.items[venue].categoryId)) {
                                     this.items[venue].categoryId = this.categories[cat];
