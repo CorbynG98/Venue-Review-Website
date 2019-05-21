@@ -36,7 +36,7 @@
                             <div v-if="modalHasError" class="text-danger">
                                 {{ modalError }}
                             </div>
-                            <b-button primary size="lg" variant="danger" v-on:click="hideModal()">
+                            <b-button primary size="lg" variant="danger" v-on:click="hidePhotoModal()">
                                 Cancel
                             </b-button>
                             <b-button primary size="lg" variant="success" v-on:click="uploadNewPhoto()">
@@ -117,11 +117,15 @@
             }
         },
         mounted: function() {
-            this.userId = this.$route.params.userId
+            this.modalHasError = false;
+            this.errorFlag = false;
+            this.userId = this.$route.params.userId;
             this.profileImage = this.getProfileImgLink(this.$route.params.userId);
             console.log(this.profileImage);
             this.$cookies.set('redirect', this.$router.currentRoute.fullPath);
-            this.getUser();
+            if (this.$route.params.userId) {
+                this.getUser();
+            }
         },
         methods: {
             searchUsers: function() {
@@ -184,6 +188,7 @@
                     type: ""
                 };
                 this.profileImage = "";
+                this.newUpload = [];
             },
 
             validateNewData: function() {
@@ -264,6 +269,10 @@
 
             hideModal: function() {
                 this.$root.$emit('bv::hide::modal', 'editProfileModal');
+            },
+
+            hidePhotoModal: function() {
+                this.$root.$emit('bv::hide::modal', 'uploadPhotoModal');
             },
 
             showEditModal: function() {

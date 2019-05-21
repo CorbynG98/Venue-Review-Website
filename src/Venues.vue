@@ -6,7 +6,7 @@
                     <b-col md="6" class="my-1">
                         <b-form-group label-cols-sm="3" label="Search Name" class="mb-0">
                             <b-input-group>
-                                <b-form-input v-model="filter" placeholder="Type to Search"></b-form-input>
+                                <b-form-input v-model="filter" placeholder="Type to Search" v-on:input="filterCities"></b-form-input>
                                 <b-input-group-append>
                                     <b-button :disabled="!filter" @click="filter = ''">Clear</b-button>
                                 </b-input-group-append>
@@ -69,6 +69,12 @@
             <div style="width: 100%; margin-top: 1rem;">
                 <div>
                     <b-button size="lg" variant="primary" v-on:click="showModal()" ref="btnShow" style="float: left; margin-bottom: 1rem;">New Venue</b-button>
+                    <div v-if="mineShowing">
+                        <b-button size="lg" variant="success" v-on:click="showAllVenues()" ref="btnShow" style="float: left; margin-bottom: 1rem; margin-left: 1rem;">All Venues</b-button>
+                    </div>
+                    <div v-else>
+                        <b-button size="lg" variant="primary" v-on:click="filterMyVenues()" ref="btnShow" style="float: left; margin-bottom: 1rem; margin-left: 1rem;">My Venues</b-button>
+                    </div>
 
                     <b-modal
                         id="newVenueModal"
@@ -115,12 +121,10 @@
                 :fields="fields"
                 :current-page="currentPage"
                 :per-page="perPage"
-                :filter="filter"
                 :busy="isBusy"
                 :sort-by.sync="sortBy"
                 :sort-desc.sync="sortDesc"
                 :sort-direction="sortDirection"
-                :filter-function="filterVenues"
                 @filtered="onFiltered">
                 <div slot="table-busy">
                     <div class="text-center">
@@ -243,7 +247,9 @@
                 modalError: "",
                 hasImages: false,
                 queryParams: {},
-                editMode: false
+                editMode: false,
+                mineShowing: false,
+                adminId: null
             }
         },
         mounted: function () {
@@ -278,7 +284,6 @@
                         for (let venue in this.items) {
                             citySet.add(this.items[venue].city);
                             if (this.items[venue].meanStarRating == 0 || this.items[venue].meanStarRating == null) this.items[venue].meanStarRating = 3;
-                            console.log(this.items);
                             for (let cat in this.categories) {
                                 if (parseInt(cat) + 1 === parseInt(this.items[venue].categoryId)) {
                                     this.items[venue].categoryId = this.categories[cat];
@@ -292,6 +297,18 @@
                         this.isBusy = false;
                         console.log(error);
                     });
+            },
+
+            filterMyVenues: function() {
+                this.mineShowing = true;
+                this.adminId = this.$cookies.get('session').userId;
+                this.filterCities();
+            },
+
+            showAllVenues: function() {
+                this.mineShowing = false;
+                this.adminId = null;
+                this.filterCities();
             },
 
             getLink: function (venueId, photoFilename) {
@@ -330,10 +347,6 @@
                     vm.photoPreview.push(e.target.result);
                 };
                 reader.readAsDataURL(file);
-            },
-
-            filterVenues: function (data, string) {
-                return data.venueName.includes(string);
             },
 
             toggleFilters: function () {
@@ -422,7 +435,6 @@
                 this.$http.get(url + "/venues", {params: queryParams})
                     .then(function (response) {
                         this.items = response.body;
-                        console.log(response.body);
                         for (let venue in this.items) {
                             if (this.items[venue].meanStarRating == 0 || this.items[venue].meanStarRating == null) this.items[venue].meanStarRating = 3;
                             for (let cat in this.categories) {
@@ -444,7 +456,9 @@
                 let queryParams = this.queryParams = {};
                 if (this.distanceSort == null) queryParams = this.queryParams;
                 if (this.citySort != null) queryParams.city = this.citySort;
-                if (this.categorySort != null) {
+                if (this.adminId != null) queryParams.adminId = this.adminId;
+                if (this.filter != null && this.filter.length > 1) queryParams.q = this.filter;
+                if (this.categorySort!= null) {
                     queryParams.categoryId = this.categorySort;
                 }
                 if (this.minStar != null) {
@@ -457,7 +471,6 @@
                     let vm = this;
                     queryParams.reverseSort = false;
                     if (this.distanceSort == 1) queryParams.reverseSort = true;
-                    console.log(navigator.geolocation);
                     if (navigator.geolocation) {
                         navigator.geolocation.getCurrentPosition(function(returned) {
                             queryParams.sortBy = "DISTANCE";
