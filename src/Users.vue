@@ -126,6 +126,12 @@
                 this.getUser();
             }
         },
+        watch: {
+            '$route' (to, from) {
+                this.isBusy = true;
+                this.getUser();
+            }
+        },
         methods: {
             searchUsers: function() {
                 this.errorFlag = false;
@@ -139,6 +145,10 @@
 
             getUser: function() {
                 let headers = {};
+                if (this.userId != this.$route.params.userId && this.$route.params.userId) {
+                    this.userId = this.$route.params.userId;
+                }
+
                 if (this.$cookies.isKey('session') && this.$cookies.get('session').userId == this.userId) {
                     headers = {
                         'X-Authorization': this.$cookies.get('session').token

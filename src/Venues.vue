@@ -8,7 +8,7 @@
                             <b-input-group>
                                 <b-form-input v-model="filter" placeholder="Type to Search" v-on:input="filterCities"></b-form-input>
                                 <b-input-group-append>
-                                    <b-button :disabled="!filter" @click="filter = ''">Clear</b-button>
+                                    <b-button :disabled="!filter" v-on:click="emptyFilter()">Clear</b-button>
                                 </b-input-group-append>
                             </b-input-group>
                         </b-form-group>
@@ -297,6 +297,11 @@
                         this.isBusy = false;
                         console.log(error);
                     });
+            },
+
+            emptyFilter: function() {
+                this.filter = "";
+                this.filterCities();
             },
 
             filterMyVenues: function() {
