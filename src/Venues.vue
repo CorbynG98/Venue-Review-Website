@@ -76,36 +76,6 @@
                         title="New Venue"
                         centered>
                         <form ref="form">
-                            <!-- <template>
-                                <div>
-                                    <gallery :images="photoPreview" :index="null" style="overflow-x: scroll; margin:auto !important;"></gallery>
-                                    <div v-if="hasImages">
-                                        <div
-                                            style="margin:auto !important;"
-                                            class="image"
-                                            v-for="(image, imageIndex) in photoPreview"
-                                            :key="imageIndex"
-                                            :style="{ backgroundImage: 'url(' + image + ')', width: '300px', height: '200px' }">
-                                        </div>
-                                    </div>
-                                    <div v-else>
-                                        <b-img src="src/assets/default.jpg" width="300px" height="200px"></b-img>
-                                    </div>
-                                </div>
-                            </template>
-                            <template>
-                                <div>
-                                    <b-form-file
-                                        v-model="venuePhotos"
-                                        :state="Boolean(venuePhotos)"
-                                        :multiple="true"
-                                        placeholder="Choose a file..."
-                                        drop-placeholder="Drop file here..."
-                                        @change="onFileChange"
-                                        accept=".jpg, .png, image/jpeg, image/png"
-                                    ></b-form-file>
-                                </div>
-                            </template> -->
                             <div style="display: inline-flex; width: 100%; margin-top: 0; margin-bottom: 1rem;">
                                 <b-form-input v-model="newVenueModel.venueName" placeholder="Venues name" style="margin-right: 1rem;"></b-form-input>
                                 <b-form-select v-model="newVenueModel.categoryId" :options="categoryOptions"style="margin-right: 1rem; margin-left: 1rem;"></b-form-select>
