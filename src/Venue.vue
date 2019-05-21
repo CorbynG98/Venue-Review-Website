@@ -173,7 +173,7 @@
                                     <b-img v-bind:src="getProfileImgLink(row.item.reviewAuthor.userId)" onerror="this.onerror=null; this.src='/src/assets/default-profile.png'" width="100" height="100"></b-img>
                                 </div>
                                 <div class="UsernameAndPosted">
-                                    <h2>{{ row.item.reviewAuthor.username }}</h2>
+                                    <h2 class="profileName" v-on:click="goToProfile(row.item.reviewAuthor.userId)">{{ row.item.reviewAuthor.username }}</h2>
                                     <h2 style="font-size: 1.5rem;">{{ formatDateString(row.item.timePosted, false) }}</h2>
                                 </div>
                             </div>
@@ -396,6 +396,10 @@
         methods: {
             imageExists: function() {
                 return this.images.length != 0;
+            },
+
+            goToProfile: function(id) {
+                this.$router.push("/Users/" + id);
             },
 
             hideModal: function() {
@@ -777,5 +781,14 @@
 
     .nomargintop {
         mragin-top: 0;
+    }
+
+    .profileName {
+        color: rgba(0,0,0,1);
+    }
+
+    .profileName:hover {
+        cursor: pointer;
+        color: rgba(0,0,0,0.5);
     }
 </style>

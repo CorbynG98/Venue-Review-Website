@@ -16,7 +16,7 @@
                     <b-modal id="uploadPhotoModal" title="Upload Image" size="lg">
                         <template>
                             <div>
-                                <b-img :src="newProfilePhotoPreview" onerror="this.src='/src/assets/default-profile.png'" width="300" height="300px" style="margin: auto; display: block; margin-bottom: 1rem;"></b-img>
+                                <b-img :src="newProfilePhotoPreview" onerror="this.src='../src/assets/default-profile.png'" width="300" height="300px" style="margin: auto; display: block; margin-bottom: 1rem;"></b-img>
                             </div>
                         </template>
                         <template>
@@ -117,22 +117,11 @@
             }
         },
         mounted: function() {
+            this.userId = this.$route.params.userId
             this.profileImage = this.getProfileImgLink(this.$route.params.userId);
             console.log(this.profileImage);
             this.$cookies.set('redirect', this.$router.currentRoute.fullPath);
-            let headers = {};
-            if (this.$cookies.isKey('session') && this.$cookies.get('session').userId == this.$route.params.userId) {
-                headers = {
-                    'X-Authorization': this.$cookies.get('session').token
-                }
-            }
-            if (this.$route.params.userId) {
-                this.$http.get(url + "/users/" + this.$route.params.userId, { headers })
-                    .then(function (res) {
-                        this.searchedUser = res.body;
-                        this.isBusy = false;
-                    });
-            }
+            this.getUser();
         },
         methods: {
             searchUsers: function() {
@@ -142,6 +131,10 @@
                     this.error = "Please enter something!";
                     return;
                 }
+                this.getUser();
+            },
+
+            getUser: function() {
                 let headers = {};
                 if (this.$cookies.isKey('session') && this.$cookies.get('session').userId == this.userId) {
                     headers = {
@@ -164,10 +157,17 @@
             },
 
             onFileChange: function(e) {
-                this.modalHasError = true;
+                this.modalHasError = false;
+                this.resetNewImage();
                 let input = e.target;
                 console.log(input.files[0]);
                 if (input.files && input.files[0]) {
+                    if (input.files[0].size > 20000000) {
+                        this.modalError = "The file size is too large.";
+                        this.modalHasError = true;
+                        this.resetNewImage();
+                        return;
+                    }
                     this.newPhotoUpload.photoData = input.files[0];
                     this.newPhotoUpload.type = input.files[0].type;
                     let reader = new FileReader();
@@ -178,12 +178,43 @@
                 }
             },
 
-            validateNewData: function() {
+            resetNewImage: function() {
+                this.newPhotoUpload = {
+                    photoData: "",
+                    type: ""
+                };
+                this.profileImage = "";
+            },
 
+            validateNewData: function() {
+                this.modalHasError = false;
+                let changedData = {};
+                if (this.editDetails.givenName != "") {
+                    changedData.givenName = this.editDetails.givenName;
+                }
+                if (this.editDetails.familyName != "") {
+                    changedData.familyName = this.editDetails.familyName;
+                }
+                if ((this.editDetails.password == this.confirmPassword) && (this.password != "")) {
+                    changedData.givenName = this.editDetails.givenName;
+                }
+                if ((this.editDetails.password != this.confirmPassword) && this.password != "" && this.confirmPassword != "") {
+                    this.modalError = "Passwords are not the same."
+                    this.modalHasError = true;
+                    return;
+                }
+                this.$http.patch(url + '/users/' + this.$route.params.userId)
+                    .then(function(res) {
+                        this.$root.$emit('bv::hide::modal', 'editProfileModal');
+                        this.getUser();
+                    }, function(err) {
+                        console.log(err);
+                    });
             },
 
 
             removeProfilePhoto: function() {
+                this.modalHasError = false;
                 let headers = {
                     'X-Authorization': this.$cookies.get('session').token
                 };
@@ -200,6 +231,7 @@
             },
 
             uploadNewPhoto: function() {
+                this.modalHasError = false;
                 if (this.newPhotoUpload.photoData == "") {
                     this.modalError = "Please choose an image";
                     this.modalHasError = true;

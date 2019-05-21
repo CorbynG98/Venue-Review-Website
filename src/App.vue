@@ -17,7 +17,9 @@
                 <ul class="navbar-nav mr-auto right">
                     <div v-if="isAuth">
                         <li class="nav-item">
-                            <span class="navbar-text">Welcome, {{ username }}</span>
+                            <span class="navbar-text" style="display: inline-flex;">Welcome,&nbsp
+                                <a v-on:click="MyProfile()" class="profile-link">{{ username }}</a>
+                            </span>
                         </li>
                         <li class="nav-item">
                             <a v-on:click="Logout()" class="nav-link">Logout</a>
@@ -81,7 +83,17 @@
                         this.$cookies.remove("session");
                         this.isAuth = false;
                         this.username = "";
-                    }, function(error) {});
+                    }, function(err) {
+                        if (err.status == 401) {
+                            this.$cookies.remove("session");
+                            this.isAuth = false;
+                            this.username = "";
+                        }
+                    });
+            },
+
+            MyProfile: function() {
+                this.$router.push('/Users/' + this.$cookies.get('session').userId)
             }
         }
     }
@@ -161,5 +173,14 @@
 
     .vue-star-rating {
         margin: auto;
+    }
+
+    .profile-link {
+        color: rgba(255, 255, 255, 0.5) !important;
+    }
+
+    .profile-link:hover {
+        cursor: pointer;
+        color: rgba(255, 255, 255, 0.75) !important;
     }
 </style>

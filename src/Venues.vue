@@ -128,7 +128,7 @@
                     </div>
                 </div>
                 <template slot="primaryPhoto" slot-scope="row">
-                    <b-img v-bind:src="getLink(row.item.venueId, row.item.primaryPhoto)" width="200" height="150"></b-img>
+                    <b-img v-bind:src="getLink(row.item.venueId, row.item.primaryPhoto)" fluid width="200" height="150"></b-img>
                 </template>
                 <template slot="meanStarRating" slot-scope="row">
                     <star-rating :rating="row.item.meanStarRating" :increment="0.1" :read-only="true" :show-rating="false" :star-size="20"></star-rating>
