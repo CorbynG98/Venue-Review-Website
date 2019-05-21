@@ -119,6 +119,7 @@
         mounted: function() {
             this.modalHasError = false;
             this.errorFlag = false;
+            this.userId = null;
             this.userId = this.$route.params.userId;
             this.profileImage = this.getProfileImgLink(this.$route.params.userId);
             this.$cookies.set('redirect', this.$router.currentRoute.fullPath);
@@ -128,8 +129,7 @@
         },
         watch: {
             '$route' (to, from) {
-                this.isBusy = true;
-                this.getUser();
+                if (to.name == 'User') this.getUser();
             }
         },
         methods: {
@@ -157,6 +157,7 @@
 
                 this.$http.get(url + "/users/" + this.userId, { headers })
                     .then(function (res) {
+                        this.profileImage = this.getProfileImgLink(this.$route.params.userId);
                         this.searchedUser = res.body;
                         this.isBusy = false;
                         this.$router.push("/Users/" + this.userId)

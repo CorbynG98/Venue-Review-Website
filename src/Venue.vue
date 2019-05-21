@@ -31,14 +31,18 @@
                     style="text-shadow: 1px 1px 2px; height: 480px;">
                     <div v-if="imageExists()">
                         <div v-for="image in images">
-                            <b-carousel-slide v-bind:img-src='image.src'>
-                                <h1>{{ image.desc }}</h1>
+                            <b-carousel-slide v-bind:img-src='image.src' v-on:click="removeImage(image.src)">
+                                <h1 style="text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;">{{ image.desc }}</h1>
+                                <div v-if="!notAdmin">
+                                    <b-button v-on:click="removeImage(image.src)" class="little-fade">Remove</b-button>
+                                    <b-button v-on:click="makePrimary(image.src)" class="little-fade">Primary</b-button>
+                                </div>
                             </b-carousel-slide>
                         </div>
                     </div>
                     <div v-else>
                         <b-carousel-slide img-src="/src/assets/default.jpg" style="height: 480px; background-position: 50% 50%;">
-                            <h1>No images found for this venue</h1>
+                            <h1 style="text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;">No images found for this venue</h1>
                         </b-carousel-slide>
                     </div>
                 </b-carousel>
@@ -255,8 +259,8 @@
                         }, sortable: false },
                     { key: 'admin.username', label: 'Admin Username', sortable: false },
                     { key: 'dateAdded', label: 'Created', formatter: value =>  {
-                            return this.formatDateString(value, false, false);
-                        }}
+                            return this.formatDateString(this.date, false, false);
+;                        }}
                 ],
                 reviewFields: [
                     { key: 'reviewDetails', label: 'Details', class: 'row30'},
@@ -311,7 +315,8 @@
                 notAdmin: true,
                 editMode: false,
                 modalError: '',
-                modalHasError: false
+                modalHasError: false,
+                date : ""
             }
         },
         computed: {
@@ -366,8 +371,10 @@
             this.$http.get(url + "/venues/" + this.$route.params.venueId)
                 .then(function(response) {
                     this.venue = response.body;
+                    console.log(this.venue.dateAdded);
                     detail.category = this.venue.category;
                     detail.admin = this.venue.admin;
+                    this.date = this.venue.dateAdded.toString();
 
                     this.updateVenueDetails.venueName = this.venue.venueName;
                     this.updateVenueDetails.address = this.venue.address;
@@ -396,6 +403,37 @@
         methods: {
             imageExists: function() {
                 return this.images.length != 0;
+            },
+
+            removeImage: function(source) {
+                let headers = {
+                    'X-Authorization': this.$cookies.get('session').token
+                };
+                this.isBusy = true;
+                this.$http.delete(source, {headers})
+                    .then(function() {
+                        this.$bvToast.toast('Image has been removed.');
+                        this.updatePageInformation();
+                        this.isBusy = false;
+                    }, function() {
+                        this.$bvToast.toast('Unable to remove image at this time.');
+                        this.isBusy = false;
+                    })
+            },
+
+            makePrimary: function(source) {
+                let headers = {
+                    'X-Authorization': this.$cookies.get('session').token
+                };
+                this.isBusy = true;
+                this.$http.post(source + '/setPrimary', null, {headers})
+                    .then(function() {
+                        this.$bvToast.toast('Image has been set to primary.');
+                        this.updatePageInformation();
+                    }, function() {
+                        this.$bvToast.toast('Unable to set primary at this time.');
+                        this.isBusy = false;
+                    })
             },
 
             goToProfile: function(id) {
@@ -621,6 +659,7 @@
                         else
                             this.notAdmin = false;
                         if (this.venue.longDescription != null && this.venue.longDescription != "") this.isLong = true;
+                        this.images = [];
                         for (let photo in this.venue.photos) {
                             let image = this.venue.photos[photo];
                             let newImage = {src: url + "/venues/" + this.$route.params.venueId + "/photos/" + image.photoFilename, desc: image.photoDescription};
@@ -790,5 +829,15 @@
     .profileName:hover {
         cursor: pointer;
         color: rgba(0,0,0,0.5);
+    }
+
+    .little-fade {
+        background: rgba(0, 0, 255, 0.3);
+        border-color: rgba(0, 0, 255, 0.3);
+    }
+
+    .little-fade:hover {
+        background: rgba(0, 0, 255, 0.5);
+        border-color: rgba(0, 0, 255, 0.5);
     }
 </style>

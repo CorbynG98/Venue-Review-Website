@@ -134,7 +134,7 @@
                     </div>
                 </div>
                 <template slot="primaryPhoto" slot-scope="row">
-                    <b-img v-bind:src="getLink(row.item.venueId, row.item.primaryPhoto)" fluid width="200" height="150"></b-img>
+                    <b-img v-bind:src="getLink(row.item.venueId, row.item.primaryPhoto)" fluid style="max-width: 200px; max-height: 200px; min-width: 200px; min-height: 150px;"></b-img>
                 </template>
                 <template slot="meanStarRating" slot-scope="row">
                     <star-rating :rating="row.item.meanStarRating" :increment="0.1" :read-only="true" :show-rating="false" :star-size="20"></star-rating>
@@ -146,7 +146,9 @@
                     </b-button>
                 </template>
             </b-table>
-
+            <div style="width: 100%;">
+                <h4 style="text-align: left; margin-left: 1rem;">Items: {{ getPageRange() }}</h4>
+            </div>
             <b-row>
                 <b-col md="6" class="my-1">
                     <b-pagination
@@ -370,7 +372,7 @@
             },
 
             getPageRange: function () {
-                let current = parseInt(this.currentPage);
+                let current = (parseInt(this.currentPage) - 1) * parseInt(this.perPage) + 1;
                 let end = current + this.perPage - 1;
                 end = end > this.totalRows ? this.totalRows : end;
                 return (current + ' - ' + end);
