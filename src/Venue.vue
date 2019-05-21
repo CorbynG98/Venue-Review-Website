@@ -223,7 +223,7 @@
                     </div>
                 </template>
                 <b-form-input v-model="newVenuePhoto.description" placeholder="Photo description" style="margin-right: 1rem; margin-bottom: 1rem;"></b-form-input>
-                <b-form-checkbox v-model="newVenuePhoto.makePrimary" :options="categoryOptions"style="margin-right: 1rem; margin-left: 1rem;">Make this the primary photo for the venue?</b-form-checkbox>
+                <b-form-checkbox v-model="newVenuePhoto.makePrimary" :options="categoryOptions" style="margin-right: 1rem; margin-left: 1rem;">Make this the primary photo for the venue?</b-form-checkbox>
             </form>
             <template slot="modal-footer">
                 <div v-if="modalHasError" class="text-danger">
@@ -232,7 +232,7 @@
                 <b-button primary size="lg" variant="danger" v-on:click="hideModal()">
                     Cancel
                 </b-button>
-                <b-button primary size="lg" variant="success" v-on:click="uploadNewVenue()">
+                <b-button primary size="lg" variant="success" v-on:click="uploadNewPhoto()">
                     Submit
                 </b-button>
             </template>
@@ -277,7 +277,7 @@
                 ],
                 updateVenueDetails: {
                     venueName: "",
-                    categoryId: null,
+                    categoryId: {value: 0, text: "hello"},
                     city: "",
                     address: "",
                     longitude: null,
@@ -349,8 +349,6 @@
                             }
                         }
                     });
-            } else {
-                this.busy = false;
             }
 
             this.$http.get(url + "/categories")
@@ -361,7 +359,6 @@
                         let id = this.categories[cat].categoryId;
                         this.categoryOptions.push({value: id, text: name});
                     }
-                    this.isBusy = false;
                 });
 
             this.$http.get(url + "/venues/" + this.$route.params.venueId + "/reviews")
@@ -378,12 +375,14 @@
 
                     this.updateVenueDetails.venueName = this.venue.venueName;
                     this.updateVenueDetails.address = this.venue.address;
-                    this.updateVenueDetails.categoryId = this.venue.categoryId;
+                    this.updateVenueDetails.categoryId = {value: this.venue.category.categoryId, text: this.venue.category.categoryName};
                     this.updateVenueDetails.city = this.venue.city;
                     this.updateVenueDetails.latitude = this.venue.latitude;
                     this.updateVenueDetails.longitude = this.venue.longitude;
                     this.updateVenueDetails.longDescription = this.venue.longDescription;
                     this.updateVenueDetails.shortDescription = this.venue.shortDescription;
+
+                    console.log(this.updateVenueDetails);
 
                     this.description = this.isLong ? this.venue.shortDescription + "..." : this.venue.shortDescription;
                     if (this.$cookies.isKey('session'))
@@ -405,6 +404,10 @@
                 return this.images.length != 0;
             },
 
+            hideModal: function() {
+                this.$root.$emit('bv::hide::modal', 'uploadVenuePhotoModal');
+            },
+
             editVenue: function() {
                 this.editMode = true;
             },
@@ -423,16 +426,32 @@
             },
 
             uploadNewPhoto: function() {
+                let formData = new FormData();
                 if (this.newVenuePhoto.photo == "") {
                     this.modalError = "Please select a valid image!";
                     this.modalHasError = true;
                     return;
                 }
+                formData.append('photo', this.newVenuePhoto.photo);
                 if (this.newVenuePhoto.description.length <= 5) {
                     this.modalError = "";
                     this.modalHasError = true;
                     return;
                 }
+                formData.append('description', this.newVenuePhoto.description);
+                formData.append('makePrimary', this.newVenuePhoto.makePrimary);
+                let headers = {
+                    'X-Authorization': this.$cookies.get('session').token
+                };
+
+                this.$http.post(url + "/venues/" + this.$route.params.venueId + "/photos", formData, { headers })
+                    .then(function(response) {
+                        this.hideModal();
+                        this.updatePageInformation();
+                        console.log(response);
+                    }, function(err) {
+                        console.log(err);
+                    });
             },
 
             validateAndSubmitChanges: function() {
@@ -505,10 +524,11 @@
                         this.newUploads = [];
                         return;
                     }
+                    this.newVenuePhoto.photo = input.files[0];
                     let reader = new FileReader();
                     reader.onload = (e) => {
+                        console.log(e.target);
                         this.newVenuePhotosPreview = e.target.result;
-                        this.newVenuePhoto.photo = e.target.result;
                     };
                     reader.readAsDataURL(input.files[0]);
                 }
