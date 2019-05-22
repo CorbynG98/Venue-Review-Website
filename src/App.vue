@@ -81,11 +81,13 @@
                 this.$http.post(url + "/users/logout", JSON.stringify({}), {headers})
                     .then(function(response) {
                         this.$cookies.remove("session");
+                        this.$cookies.remove("password");
                         this.isAuth = false;
                         this.username = "";
                     }, function(err) {
                         if (err.status == 401) {
                             this.$cookies.remove("session");
+                            this.$cookies.remove("password");
                             this.isAuth = false;
                             this.username = "";
                         }

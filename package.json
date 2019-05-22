@@ -2,7 +2,6 @@
   "name": "reviewappfrontend",
   "description": "Front end web pages for the review api we made in assignment 1",
   "version": "1.0.0",
-  "author": "ctg31 <ctg31@uclive.ac.nz>",
   "license": "MIT",
   "private": true,
   "scripts": {

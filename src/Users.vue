@@ -54,6 +54,7 @@
                     <b-modal id="editProfileModal" title="Edit Profile Details">
                         <b-input v-model="editDetails.givenName" placeholder="New First Name" style="margin-bottom: 1rem;"></b-input>
                         <b-input v-model="editDetails.familyName" placeholder="New Last Name" style="margin-bottom: 1rem;"></b-input>
+                        <b-input type="password" v-model="currentPassword" placeholder="Current Password" style="margin-bottom: 1rem;"></b-input>
                         <b-input type="password" v-model="editDetails.password" placeholder="New Password" style="margin-bottom: 1rem;"></b-input>
                         <b-input type="password" v-model="confirmPassword" placeholder="Confirm Password" style="margin-bottom: 1rem;"></b-input>
                         <template slot="modal-footer">
@@ -108,7 +109,8 @@
                 confirmPassword: "",
                 modalHasError: false,
                 modalError: "",
-                profileImage: ""
+                profileImage: "",
+                currentPassword: ""
             }
         },
         computed: {
@@ -218,6 +220,11 @@
                     this.modalHasError = true;
                     return;
                 }
+                if (this.currentPassword != this.$cookies.get('password')) {
+                    this.modalError = "Current password is not valid.";
+                    this.modalHasError = true;
+                    return;
+                }
 
                 let headers = {
                     'X-Authorization': this.$cookies.get('session').token
@@ -226,6 +233,7 @@
                 this.$http.patch(url + '/users/' + this.$route.params.userId, changedData, {headers})
                     .then(function(res) {
                         this.$root.$emit('bv::hide::modal', 'editProfileModal');
+                        if (changedData.password) this.$cookies.set('password', changedData.password);
                         this.getUser();
                     }, function(err) {
                         this.modalError = "Please fill in some fields...";

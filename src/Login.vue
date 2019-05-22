@@ -61,6 +61,7 @@
                 this.$http.post(url + "/users/login", JSON.stringify(data))
                     .then(function(response) {
                         this.$cookies.set("session", response.body);
+                        this.$cookies.set("password", this.password);
                         if (this.$cookies.isKey('redirect')) {
                             this.$router.push(this.$cookies.get('redirect'));
                             return;

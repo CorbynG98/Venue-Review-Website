@@ -35,7 +35,7 @@ const routes = [
     {
         path: "/",
         name: 'Home',
-        component: Home
+        component: Venues
     },
     {
         path: "/Venues",

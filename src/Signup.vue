@@ -104,6 +104,7 @@
                         this.$http.post(url + "/users/login", JSON.stringify(loginData))
                             .then(function(response) {
                                 this.$cookies.set("session", response.body);
+                                this.$cookies.set("password", this.loginData.password);
                                 this.$router.push('/');
                             }, function(err) {
                                 console.log(err);

@@ -31,7 +31,7 @@
                     style="text-shadow: 1px 1px 2px; height: 480px;">
                     <div v-if="imageExists()">
                         <div v-for="image in images">
-                            <b-carousel-slide v-bind:img-src='image.src' v-on:click="removeImage(image.src)">
+                            <b-carousel-slide v-bind:img-src='image.src'>
                                 <h1 style="text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;">{{ image.desc }}</h1>
                                 <div v-if="!notAdmin">
                                     <b-button v-on:click="removeImage(image.src)" class="little-fade">Remove</b-button>
