@@ -1105,9 +1105,6 @@ export default {
   display: inline-flex;
 }
 
-.showMore {
-}
-
 .showMore:hover {
   cursor: pointer;
   color: blue !important;
@@ -1167,7 +1164,7 @@ export default {
 }
 
 .nomargintop {
-  mragin-top: 0;
+  margin-top: 0;
 }
 
 .profileName {

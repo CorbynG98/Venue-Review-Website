@@ -130,10 +130,6 @@ export default {
   margin: 0;
 }
 
-.input {
-  /* background: rgba(108, 178, 252, 0.6); */
-}
-
 .btn {
   width: 50%;
 }
