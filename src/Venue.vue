@@ -66,7 +66,7 @@
           </div>
           <div v-else>
             <b-carousel-slide
-              img-src="/src/assets/default.jpg"
+              img-src="https://storage.googleapis.com/public-s365-venue-review/default-profile.png"
               style="height: 480px; background-position: 50% 50%"
             >
               <h1
@@ -370,7 +370,7 @@
                 <div class="profileImage">
                   <b-img
                     v-bind:src="getProfileImgLink(row.item.reviewAuthor.userId)"
-                    onerror="this.onerror=null; this.src='/src/assets/default-profile.png'"
+                    onerror="this.onerror=null; this.src='https://storage.googleapis.com/public-s365-venue-review/default-profile.png'"
                     width="100"
                     height="100"
                   ></b-img>
@@ -422,7 +422,7 @@
           <div>
             <b-img
               :src="newVenuePhotosPreview"
-              onerror="this.src='/src/assets/default.jpg'"
+              onerror="this.src='https://storage.googleapis.com/public-s365-venue-review/default-profile.png'"
               width="500px"
               height="350px"
               style="margin: auto; display: block; margin-bottom: 1rem"

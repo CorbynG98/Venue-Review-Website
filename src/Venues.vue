@@ -513,7 +513,7 @@ export default {
 
     getLink: function (venueId, photoFilename) {
       if (venueId == null || photoFilename == null)
-        return "/src/assets/default.jpg";
+        return "https://storage.googleapis.com/public-s365-venue-review/default-profile.png";
       return url + "/venues/" + venueId + "/photos/" + photoFilename;
     },
 
