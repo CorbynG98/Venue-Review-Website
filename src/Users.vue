@@ -12,7 +12,7 @@
             width="200px"
             height="200px"
             :src="profileImage"
-            onerror="this.src='../src/assets/default-profile.png'"
+            onerror="this.src='https://storage.googleapis.com/public-s365-venue-review/default-profile.png'"
             style="margin-bottom: 0.2rem"
           ></b-img>
           <div
@@ -31,7 +31,7 @@
               <div>
                 <b-img
                   :src="newProfilePhotoPreview"
-                  onerror="this.src='../src/assets/default-profile.png'"
+                  onerror="this.src='https://storage.googleapis.com/public-s365-venue-review/default-profile.png'"
                   width="300"
                   height="300px"
                   style="margin: auto; display: block; margin-bottom: 1rem"
