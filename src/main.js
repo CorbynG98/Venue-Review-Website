@@ -1,11 +1,10 @@
-import Home from './Home.vue';
-import Users from './Users.vue';
-import Venues from './Venues.vue';
-import Login from './Login.vue';
-import Signup from './Signup.vue';
-import Venue from './Venue.vue';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
 import 'bootstrap/dist/css/bootstrap.css';
+import Login from './Login.vue';
+import Signup from './Signup.vue';
+import Users from './Users.vue';
+import Venue from './Venue.vue';
+import Venues from './Venues.vue';
 
 import Vue from 'vue';
 import App from './App.vue';
