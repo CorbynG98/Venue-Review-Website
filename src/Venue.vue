@@ -66,7 +66,7 @@
           </div>
           <div v-else>
             <b-carousel-slide
-              img-src="https://storage.googleapis.com/public-s365-venue-review/default.png"
+              img-src="https://storage.googleapis.com/public-s365-venue-review/default.jpg"
               style="height: 480px; background-position: 50% 50%"
             >
               <h1
@@ -422,7 +422,7 @@
           <div>
             <b-img
               :src="newVenuePhotosPreview"
-              onerror="this.src='https://storage.googleapis.com/public-s365-venue-review/default.png'"
+              onerror="this.src='https://storage.googleapis.com/public-s365-venue-review/default.jpg'"
               width="500px"
               height="350px"
               style="margin: auto; display: block; margin-bottom: 1rem"
